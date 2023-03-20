@@ -69,8 +69,8 @@
 		$lang = session_get("lang");
 	elseif(file_exists(LANG_DIR."/".$browserLang.".php"))
 		$lang = $browserLang;
-	else
-		$lang = Config::get()->lang;
+	#else
+		#$lang = Config::get()->lang;
 		
 	if(!file_exists(LANG_DIR."/".$lang.".php"))
 		$lang = "en_US";
