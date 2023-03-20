@@ -120,5 +120,12 @@ class Param extends Controller
     {
         echo "<pre><font color=gray>".print_r(func_get_args(), true)."<br>".print_r($_GET, true)."</font></br>";
     }
+    
+    function runTestFile()
+    {
+        session_set("sdphp", "Hello World");
+        $result = auth_check("sdphp"); // find automatically from the app\\helpers\\test-helper.php
+        success("Successfully ran the test method but the function returned: ".intval($result));
+    }
 }
 ?>
