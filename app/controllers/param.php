@@ -1,7 +1,7 @@
 <?php 
 class Param extends Controller
 {
-    public function content($url, $query)
+    public function getContentFromApi($url, $query)
     {
         $payload = json_encode(["query" => $query]);
 
