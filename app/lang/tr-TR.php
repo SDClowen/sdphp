@@ -1,0 +1,57 @@
+<?php 
+	# Core
+	$Language['validation.captcha_error']		= 'Captcha\'yı doğrulayın.';
+	$Language['validation.required_error']		= '<b>%s</b> alanı boş bırakılamaz';
+	$Language['validation.numeric_error']		= '<b>%s</b> alanı numeric tipinde olmalıdır';
+	$Language['validation.email_error']			= 'E-Posta adresi tanınmadı. Lütfen geçerli bir E-Posta adresi yazıp tekrar deneyiniz.';
+	$Language['validation.min_len_error']		= '<b>%s</b> alanı minimum <b>%s</b> karakter olmalıdır';
+	$Language['validation.max_len_error']		= '<b>%s</b> alanı maximum <b>%s</b> karakter olmalıdır';
+	$Language['validation.exact_len_error']		= '<b>%s</b> alanı <b>%s</b> karakter olmalıdır';
+	$Language['validation.min_numeric_error']	= "<b>%s</b> alanı minimum '<b>%s</b>' değeri alabilir";
+	$Language['validation.max_numeric_error']	= "<b>%s</b> alanı maximum '<b>%s</b>' değeri alabilir";
+	$Language['validation.matches_error']		= '<b>%s</b> alanı <b>%s</b> alanı ile eşleşmiyor';
+	$Language['validation.checked_error']		= 'Lütfen <b>%s</b> kutucuğunu işaretleyin.';
+	$Language['validation.badwords_error']		= '<b>%s</b> alanında kabul edilmeyen karakterler mevcut.';
+	$Language['validation.regex_error']			= '<b>%s</b> alanı en az 1 harf ve sayı bulunmalıdır ve özel karakterler kullanılmamalıdır.';
+	$Language['validation.input.missing']		= '<b>%s</b> alanı eksik olduğundan işlem durduruldu. Lütfen sayfayı yenileyin ve tekrar deneyin.';
+	$Language['validation.phone.error']			= '<b>%s</b> alanı telefon numarası biçimine uymuyor';
+	$Language['validation.letter.dash.error']	= '<b>%s</b> alanında sadece harfler kabul edilir.';
+	$Language['validation.alpha.dash.error']	= '<b>%s</b> alanında sadece harfler & sayılar & _ kabul edilir.';
+	$Language['validation.letter.space.error']	= '<b>%s</b> alanında sadece harfler ve boşluk kabul edilir.';
+	$Language['validation.alpha.space.error']	= '<b>%s</b> alanında sadece harfler & sayılar & boşluk kabul edilir.';
+	$Language['validation.url.error']			= '<b>%s</b> alanı url olarak kabul edilemedi.';
+	$Language['validation.numeric.value.error']	= "<b>%s</b> değeri <b class='text-danger'>%s</b> değerinden daha %s olamaz.";
+	$Language['validation.money.error']			= "<b>%s</b> alanı para birimine uymuyor. <span class='text-muted'>0.000,00</span> format'ında yazmayı deneyin";
+	$Language['validation.ip.error']			= "<b>%s</b> geçerli bir ip adresi değil!";
+	$Language["server.respond.error"]			= "Sunucudan cevap alınamadı, Lütfen daha sonra tekrar deneyin veya yöneticiler ile iletişime geçin.";
+	$Language['small'] 							= 'küçük';
+	$Language['big'] 							= 'büyük';
+	$Language['time.y']							= "yıl";
+	$Language['time.m']							= "ay";
+	$Language['time.w']							= "hafta";
+	$Language['time.d']							= "gün";
+	$Language['time.h']							= "saat";
+	$Language['time.i']							= "dakika";
+	$Language['time.s']							= "saniye";
+	$Language['time.ago']						= "önce";
+	$Language['time.now']						= "şimdi";
+	$Language['csrf.error']						= 'Güvenlik hatası. Lütfen sayfayı yenileyip tekrar deneyin.';
+
+	# App
+	$Language['already.have']					= "<b>%s</b> sistem'de zaten kayıtlı";
+	$Language["login.required"]					= "Lütfen giriş yapınız.";
+	$Language["login.required.desc"]			= "İşleme devam etmek için lütfen giriş yapınız.";
+	$Language["password.reuse.warn"]			= "Aynı şifreyi tekrar kullanamazsınız.";
+	$Language["password.not.correct"]			= "Şifre doğru değildi!";
+	$Language["password.already.used"]			= "Aynı şifreyi <b>%s</b> zaten kullanmıştınız, güvenliğiniz için başka bir şifre deneyin!";
+	$Language['password.successfully.changed']	= 'Yeni şifreniz başarıyla değiştirildi. Lütfen yeni şifreniz ile birlikte giriş yapınız.';
+	$Language['register.success']				= "<span class ='spinner-border spinner-border-sm mr-2' role='status'></span> Başarıyla kayıt oldunuz. Yönlendiriliyorsunuz lütfen bekleyiniz...";
+	$Language["register.error"]					= "Kayıt hatası.Lütfen tarayıcı önbelleğini temizleyip tekrar deneyin.";
+	$Language['activation.info.after.register']	= 'Giriş yapmadan önce <b>%s</b> adresinize yollanan aktivasyon linki ile hesabınızı onaylayın. Ardından giriş yapabilirsiniz.';
+	$Language['data.change.error']				= 'Veri işlenirken bir hata oluştu, Lütfen tarayıcı önbelleğin temizleyin ardından sayfayı yenileyip tekrar deneyin.';
+	$Language['no.data.changed']				= 'Değişen herhangi bir veri olmadığı için işlem yapılmadı!';
+	$Language["authorize.error"]				= "Bu işlemi yapmak için yetkiniz yok!";
+	$Language['payment.min.request']			= 'Ödeme minimum <b>%s TL</b> ile yapılır.';
+	$Language['payment.max.request']			= 'Tek seferde maximum <b>%s TL</b> çekilebilir.';
+	$Language['iban.format.error']				= 'Iban tanımlanamadı. Iban formatı yanlış!';
+	$Language['select.bank']					= 'Lütfen bir banka seçimi yapınız!';

@@ -1,0 +1,15 @@
+RewriteEngine On
+DirectoryIndex index.php
+RewriteBase /
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !\.(ico|css|png|jpg|gif|js)$ [NC]
+RewriteCond %{REQUEST_URI} !-l
+#RewriteRule ^([0-9a-zA-Z-_/]+)$ index.php?$1
+RewriteRule ^(.+)$ index.php?$1 [QSA,L]
+ErrorDocument 403 /app/views/errors/404.html
+ErrorDocument 404 /app/views/errors/404.html
+<Files *.json>
+	Order allow,deny
+	Deny from all
+</Files>
