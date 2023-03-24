@@ -107,10 +107,14 @@ class App
 
         if($action->instance?->session && !session_check($action->instance?->session))
         {
+            $otherwise = "/";
+            if($action->instance->otherwise)
+                $otherwise = $action->instance->otherwise;
+
             if(Request::isAjax())
-                error(redirect: $action->instance->otherwise);
+                error(redirect: $otherwise);
             else
-                redirect($action->instance->otherwise);
+                redirect($otherwise);
         }
 
         if($action->method->getNumberOfRequiredParameters() > count($this->params))
@@ -120,6 +124,7 @@ class App
         $params = &$this->params;
         
         $this->controller->db = Database::instance();
+        $this->controller->config = Config::get();
         $this->controller->attributes = $action->instance;
 
         // gelen params ile fonksiyondaki params'ın tipleri uyuşuyormu kontrol et

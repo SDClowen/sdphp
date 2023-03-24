@@ -235,7 +235,7 @@ class Request
 	 * @param int $index
 	 * @return string
 	 */
-	public static function getSegment($index)
+	public static function getSegment($index = 0)
 	{
 		return @self::segments()[$index];
 	}

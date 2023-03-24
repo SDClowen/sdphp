@@ -1,28 +1,34 @@
-<?php 
+<?php
 
 defined("DIRECT") or exit("No direct script access allowed");
 
 class Controller
 {
-	/*
-	*  Ran method attributes 
-	*/
-	public $attributes;
-	
-	/*
-	*  The database instance
-	*/
-	public $db;
+    /*
+     *  Ran method attributes 
+     */
+    public $attributes;
 
-	/*
-	* Create new instance of this class
-	*/
-	public static function new()
-	{
-		return new self();
-	}
+    /*
+     *  The database instance
+     */
+    public $db;
 
-	/**
+
+    /*
+    * The system config
+     */
+    public $config;
+
+    /*
+     * Create new instance of this class
+     */
+    public static function new ()
+    {
+        return new self();
+    }
+
+    /**
      * Render a view file
      *
      * @param string $view The view file
@@ -32,24 +38,23 @@ class Controller
      */
     public function render($view, array $args = [], $isEcho = true)
     {
-        if (file_exists($file = VDIR."/".strtolower($view).".php")) 
-        {
-            extract($args, EXTR_SKIP);
-            ob_start();
+        if (!file_exists($file = VDIR . "/" . strtolower($view) . ".php"))
+            exit("Could not found the view file: $view");
 
-            if (is_readable($file))
-                require $file;
-            else
-                exit("Could not found the view file: $view");
+        extract($args, EXTR_SKIP);
+        ob_start();
 
-            $result = ob_get_clean();
-			if($isEcho)
-				echo $result;
-			else
-				return $result;
-        } 
+        if (is_readable($file))
+            require $file;
         else
             exit("Could not found the view file: $view");
+
+        $result = ob_get_clean();
+
+        if (!$isEcho)
+            return $result;
+
+        echo $result;
     }
 }
 ?>

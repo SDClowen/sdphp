@@ -7,17 +7,21 @@ class Config
 	public static function get()
 	{
 		if (null === self::$_instance) {
-			$config = Database::instance()->from("config")->first();
-			self::$_instance = new self($config);
+			$config = Database::instance()->from("config")->results();
+			$newStd = new stdClass;
+			foreach($config as $value)
+			{
+				$newStd->{$value->name} = $value->value;
+			}
+			self::$_instance = new self($newStd);
 		}
 
 		return self::$_instance;
 	}
 
-	public function __construct(string $json)
+	public function __construct($dataObj)
 	{
-		$obj = json_decode($json) or die(json_last_error_msg());
-		$this->_data = $obj;
+		$this->_data = $dataObj;
 	}
 
 	public function __set($property, $value)
@@ -32,7 +36,7 @@ class Config
 
 	public function update()
 	{
-		return Database::instance()->from("config")->update(["json" => json_encode($this->_data)]);
+		return Database::instance()->from("config")->update($this->_data);
 	}
 }
 ?>

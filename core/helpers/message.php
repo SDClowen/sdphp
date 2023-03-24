@@ -44,6 +44,26 @@
     {
         die(message($message, "info", $redirect, $scrollTo));
     }
+    
+    function errorlang($key = '', $redirect = false, $scrollTo = false)
+    {
+        error(lang($key), $redirect, $scrollTo);
+    }
+
+    function warninglang($key = '', $redirect = false, $scrollTo = false)
+    {
+        warning(lang($key), $redirect, $scrollTo);
+    }
+    function successlang($key = '', $redirect = false, $scrollTo = false)
+    {
+        success(lang($key), $redirect, $scrollTo);
+    }
+
+    function infolang($key = '', $redirect = false, $scrollTo = false)
+    {
+        info(lang($key), $redirect, $scrollTo);
+    }
+
 
     function console($message)
     {

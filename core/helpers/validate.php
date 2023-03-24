@@ -106,7 +106,7 @@ function validate(&$source, array $items)
 
                     $nmatchValue = is_object($source) ? $source->$rule_value : $source[$rule_value];
                     if ($value == $nmatchValue)
-                        $errors[] = lang("validation.matches_error", $rules['name'], $items[$rule_value]['name']);
+                        $errors[] = lang("validation.notmatches_error", $rules['name'], $items[$rule_value]['name']);
 
                     break;
 
@@ -128,6 +128,15 @@ function validate(&$source, array $items)
                     break;
 
                 case 'numeric':
+
+                    if (!is_numeric($value)) {
+                        $errors[] = lang("validation.numeric_error", $rules["name"]);
+                        break 2;
+                    }
+
+                    break;
+
+                case 'strnum':
 
                     if (!is_numeric($value)) {
                         $errors[] = lang("validation.numeric_error", $rules["name"]);
@@ -221,7 +230,7 @@ function letter_dash($data)
 
 function alpha_dash($data)
 {
-    return (!preg_match("/^([a-zA-Z0-9,._-])+$/i", $data)) ? false : true;
+    return (!preg_match("/^([a-zA-Z0-9,.@_-])+$/i", $data)) ? false : true;
 }
 
 function alpha_space($data)
