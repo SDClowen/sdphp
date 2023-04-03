@@ -3,7 +3,7 @@
 return [
 	'validation.captcha_error' => 'Captcha\'yı doğrulayın.',
 	'validation.required_error' => '<b>%s</b> alanı boş bırakılamaz',
-	'validation.numeric_error' => '<b>%s</b> alanı numeric tipinde olmalıdır',
+	'validation.numeric_error' => '<b>%s</b> alanı sadece rakamlardan oluşmalıdır!',
 	'validation.email_error' => 'E-Posta adresi tanınmadı. Lütfen geçerli bir E-Posta adresi yazıp tekrar deneyiniz.',
 	'validation.min_len_error' => '<b>%s</b> alanı minimum <b>%s</b> karakter olmalıdır',
 	'validation.max_len_error' => '<b>%s</b> alanı maximum <b>%s</b> karakter olmalıdır',
@@ -25,6 +25,7 @@ return [
 	'validation.numeric.value.error' => "<b>%s</b> değeri <b class='text-danger'>%s</b> değerinden daha %s olamaz.",
 	'validation.money.error' => "<b>%s</b> alanı para birimine uymuyor. <span class='text-muted'>0.000,00</span> format'ında yazmayı deneyin",
 	'validation.ip.error' => "<b>%s</b> geçerli bir ip adresi değil!",
+	'validation.datetime.error' => "Girdiğiniz tarih, bir tarih formatında değildi!",
 	"server.respond.error" => "Sunucudan cevap alınamadı, Lütfen daha sonra tekrar deneyin veya yöneticiler ile iletişime geçin.",
 	'small' => 'küçük',
 	'big' => 'büyük',
@@ -60,6 +61,8 @@ return [
 	'payment.max.request'=> 'Tek seferde maximum <b>%s TL</b> çekilebilir.',
 	'iban.format.error'=> 'Iban tanımlanamadı. Iban formatı yanlış!',
 	'succesfully.added' => "%s başarıyla eklendi",
-	'error.setanybankinfo' => "IBAN yada Müşteri Numarası yazınız!"
-
+	'error.setanybankinfo' => "IBAN yada Müşteri Numarası yazınız!",
+	'type.keyword'		=> "Anahtar kelime yazınız",
+	'successfully.created.workorder' => "İş emri başarıyla oluşturuldu...",
+	'deleted.change.error' => "Silinmiş öğeye değiştirilme yapılamaz!"
 ];
