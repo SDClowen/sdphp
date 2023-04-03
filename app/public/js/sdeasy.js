@@ -1,17 +1,10 @@
-/**
- * @file <SDEasy> This is my cool script
- * @author Mahmut YILDIRIM a.k.a SDClowen <cloweninc@gmail.com>
- * @copyright Mahmut YILDIRIM a.k.a SDClowen 2022
- */
-
 $(function () {
 
     /**
      * Show active class on the linked tag after which page is viewed
      */
-    if (location.pathname)
-    {
-        let pathElement = $("a[href='" + location.pathname + "']");
+    if (location.pathname) {
+        let pathElement = $("ul a[href='" + location.pathname + "']");
         pathElement.addClass("active").attr("href", "#").attr("onclick", "return false");
     }
 
@@ -27,6 +20,20 @@ $(function () {
      */
     $.fn.spinner = function () {
         this.toggleClass("spinner");
+    };
+
+    /**
+     * Active spinner animation on the element
+     */
+    $.fn.resetForm = function () {
+
+        for (let index = 0; index < this.length; index++) {
+            const element = this[index];
+            element.reset();
+        }
+
+        // TODO: FIXX
+        // because of the form reset function does not reseting the textares!
     };
 
     /**
@@ -56,6 +63,23 @@ $(function () {
         }, 500, 'linear');
     }
 
+    const currentDateTime = () => {
+        var tzoffset = new Date().getTimezoneOffset() * 60000; //offset in milliseconds
+        var localISOString = new Date(Date.now() - tzoffset)
+            .toISOString()
+            .slice(0, -1);
+
+        // convert to YYYY-MM-DDTHH:MM
+        const datetimeInputString = localISOString.substring(
+            0,
+            ((localISOString.indexOf("T") | 0) + 6) | 0
+        );
+        console.log(datetimeInputString);
+        return datetimeInputString;
+    };
+
+    $("[current-datetime]").val(currentDateTime());
+
     function updateTableIndexes(table) {
         let index = 0;
         let array = $(table + " tr th[scope=row]").toArray();
@@ -74,6 +98,9 @@ $(function () {
 
         const remove = $this.data("remove");
         let redirect = $this.attr("redirect");
+
+        const dataTableAction = $this.attr("datatable-action");
+
         const autoUpdate = $this.data("auto-update");
         const autoUpdateType = $this.data("auto-update-type");
         const injectCode = $this.data("run");
@@ -121,6 +148,41 @@ $(function () {
                 if (modalDispose)
                     $(modalDispose).modal('hide');
 
+                switch (dataTableAction) {
+                    case "add":
+
+                        const addingTable = $($this.attr("datatable")).DataTable();
+
+                        addingTable.row.add(data.message).draw();
+
+                        break;
+
+                    case "remove":
+
+                        const table = $this.parents('table').DataTable();
+
+                        var tr = $this.parents('tr');
+                        if (tr.hasClass("child"))
+                            tr = tr.prev();
+
+                        var row = table.row(tr);
+
+                        if (row.child.isShown()) {
+                            row.child.hide();
+
+                            tr.removeClass('shown');
+                        }
+
+                        row.remove().draw(true);
+
+                        break;
+
+                    case "update":
+                        /*
+                        const updatingTable = $($("").attr("datatable")).DataTable();
+                        datatable.row.update(data.message).draw();*/
+                        break;
+                }
                 if (autoUpdate) {
                     const target = $this.data("parent");
                     if (autoUpdateType == "one")
@@ -131,9 +193,8 @@ $(function () {
                         if (jsonDomItem.length) {
                             const updateType = jsonDomItem.data("update-type");
                             const then = jsonDomItem.data("field-then");
-                            if(typeof(then) !== "undefined")
-                            {
-                                if(data.message[then])
+                            if (typeof (then) !== "undefined") {
+                                if (data.message[then])
                                     jsonDomItem.show();
                                 else
                                     jsonDomItem.hide();
@@ -166,10 +227,10 @@ $(function () {
 
             if (data.redirect) {
                 redirect = data.redirect.split(":");
-                if(redirect == "REFRESH-PAGE")
+                if (redirect == "REFRESH-PAGE")
                     location.reload();
                 else
-                setTimeout(function () { window.location.href = redirect[0]; }, redirect[1]);
+                    setTimeout(function () { window.location.href = redirect[0]; }, redirect[1]);
             }
 
             onAjaxDone?.(data);
@@ -215,19 +276,17 @@ $(function () {
         let url = $this.data("url");
         let countable = $this.data("countable");
 
-        const hasCountable = typeof(countable) !== "undefined";
+        const hasCountable = typeof (countable) !== "undefined";
         let num = 0;
-        if(hasCountable)
-        {
+        if (hasCountable) {
             num = parseInt(countable) + 1;
             url = url + "/" + num;
         }
 
-        sdajax($this, $this, function(data)
-        {
-            if(hasCountable)
+        sdajax($this, $this, function (data) {
+            if (hasCountable)
                 $this.data("countable", num);
-                
+
         }, url, false, actionType, actionDataType);
 
         return false;
@@ -252,7 +311,7 @@ $(function () {
 
             sdajax($this, button, function (data) {
                 if (data.type == "success") {
-                    $this[0].reset();
+                    //$this[0].reset();
 
                     // todo reset tom-select
                 }
@@ -320,146 +379,174 @@ $(function () {
                     error();
             }
         })
-            .always(() => {
-                $update.spinner();
-            });
+        .always(() => {
+            $update.spinner();
+        });
     });
 
-    /**
-     * Auto fill the form inputs in the modal from the json
-     */
-    $('[role=dialog]').on('show.bs.modal', function (event) {
-        const target = $(event.relatedTarget);
-        const modal = $(this);
-        const titleContent = modal.find('.modal-title');
-        const title = target.data('title');
-        if (title)
-            titleContent.text(title);
+    const modals = document.querySelectorAll(".modal");
+    modals.forEach(element => {
 
-        const action = target.data("action");
-        if (action) {
-            const form = modal.find("form");
-            form[0].reset();
+        element.addEventListener("hidden.bs.modal", event => {
+            const form = $(this).find("form");
+            form.resetForm();
+            form.find("textarea").val("");
+        });
 
-            const targetAutoUpdate = target.data("auto-update");
-            if (targetAutoUpdate) {
-                const targetParent = target.data("parent");
-                form.data("auto-update", targetAutoUpdate);
-                form.data("parent", targetParent);
-            }
+        /**
+         * Auto fill the form inputs in the modal from the json
+         */
+        element.addEventListener("show.bs.modal", event => {
 
-            const selectize = form.find("select[selectize]");
-            if (selectize.length)
-                selectize.selectize()[0].selectize.setValue(0);
+            const target = $(event.relatedTarget);
+            const modal = $(event.currentTarget);
+            const titleContent = modal.find('.modal-title');
+            const title = target.data('title');
 
-            form.attr("action", action);
+            if (title)
+                titleContent.text(title);
 
-            let jsonObj = target.data("json");
+            const action = target.data("action");
+            if (action) {
+                const form = modal.find("form");
 
-            const fn = function () {
-                
-                if (jsonObj) {
-                    for (const [name, value] of Object.entries(jsonObj)) {
-                        console.log(`${name}    ${value}`);
-                        let item = $('[name="' + name + '"]', form);
+                const datatableAction = target.attr("datatable-action");
+                if (datatableAction)
+                    form.attr("datatable-action", datatableAction);
 
-                        if (item.is("select")) {
-                            var index = item.find('[value="' + value + '"]');
-                            index.prop('selected', true);
-                            
-                            item.trigger("change");   
+                const dataTableName = target.attr("datatable-name");
+                if (dataTableName)
+                    form.attr("datatable-name", dataTableName);
 
-                            try {
-                                item[0].tomselect.sync();
-                            } catch (error) {
+                const targetAutoUpdate = target.data("auto-update");
+                if (targetAutoUpdate) {
+                    const targetParent = target.data("parent");
+                    form.data("auto-update", targetAutoUpdate);
+                    form.data("parent", targetParent);
+                }
 
+                const selectize = form.find("select[selectize]");
+                if (selectize.length)
+                    selectize.selectize()[0].selectize.setValue(0);
+
+                form.attr("action", action);
+
+                let jsonObj = target.data("json");
+
+                const fn = function () {
+
+                    if (jsonObj) {
+                        for (const [name, value] of Object.entries(jsonObj)) {
+                            console.log(`${name}    ${value}`);
+                            let item = $('[name="' + name + '"]', form);
+
+                            if (item.is("select")) {
+                                if (target.data("select")) {
+                                    item.html("");
+                                    for (const [sKey, sVal] of Object.entries(target.data("select"))) {
+                                        item.append(`<option value="${sVal[0]}">${sVal[1]}</option>`);
+                                    }
+                                }
+
+                                var index = item.find('[value="' + value + '"]');
+                                index.prop('selected', true);
+
+                                item.trigger("change");
+
+                                try {
+                                    item[0].tomselect.sync();
+                                } catch (error) {
+
+                                }
                             }
-                        }
-                        else if (item.is("input")) {
-                            var type = item.attr('type');
+                            else if (item.is("input")) {
+                                var type = item.attr('type');
 
-                            switch (type) {
-                                case 'checkbox':
-                                    item.attr('checked', value > 0);
-                                    break;
-                                case 'radio':
-                                    var id = item.find('[value="' + value + '"]');
-                                    id.attr('checked', 'checked');
-                                    break;
-                                case 'file':
-                                    break;
-                                default:
-                                    item.val(value);
-                                    break;
-                            }
+                                switch (type) {
+                                    case 'checkbox':
+                                        item.attr('checked', value > 0);
+                                        break;
+                                    case 'radio':
+                                        var id = item.find('[value="' + value + '"]');
+                                        id.attr('checked', 'checked');
+                                        break;
+                                    case 'file':
+                                        break;
+                                    default:
+                                        item.val(value);
+                                        break;
+                                }
 
-                            item.trigger("change");
-                        }
-                        else if (item.attr("tinymce")) {
-                            var editor = tinymce.get(name);
-                            if (editor != null)
-                            {
-                                editor.setContent(value);
-                                tinymce.triggerSave();
+                                item.trigger("change");
                             }
-                        }
-                        else if (item.is("textarea")) {
-                            item.html(value);
-                            item.trigger("change");
-                        }
-                        else if (item.attr("selectize")) {
-                            item.selectize()[0].selectize.setValue(value);
+                            else if (item.attr("tinymce")) {
+                                var editor = tinymce.get(name);
+                                if (editor != null) {
+                                    editor.setContent(value);
+                                    tinymce.triggerSave();
+                                }
+                            }
+                            else if (item.is("textarea")) {
+                                item.val(value);
+                                item.trigger("change");
+                            }
+                            else if (item.attr("selectize")) {
+                                item.selectize()[0].selectize.setValue(value);
+                            }
+                            else if (item.attr("select2")) {
+                                item.val(value).trigger("change");
+                            }
                         }
                     }
-                }
-            };
+                };
 
-            const step2 = function () {
-                const lazyData = form.find("[modal-lazy-data]");
-                if (lazyData.length) {
-                    const totalLength = lazyData.length;
-                    
-                    let ajaxs = [];
+                const step2 = function () {
+                    const lazyData = form.find("[modal-lazy-data]");
+                    if (lazyData.length) {
+                        const totalLength = lazyData.length;
 
-                    lazyData.each(function () {
-                        const $this = $(this);
+                        let ajaxs = [];
 
-                        const lazyUrl = $this.attr("modal-lazy-data");
-                        ajaxs.push($.ajax({
-                            url: lazyUrl,
-                            type: "GET",
-                            dataType: "html",
-                            success: function (ajaxResult) {
-                                $this.html(ajaxResult);
-                                console.log(lazyUrl);
-                            }
-                        }));
-                    });
+                        lazyData.each(function () {
+                            const $this = $(this);
 
-                    $.when.apply(this, ajaxs).done(function(){
-                        console.log("All ajax done!");
+                            const lazyUrl = $this.attr("modal-lazy-data");
+                            ajaxs.push($.ajax({
+                                url: lazyUrl,
+                                type: "GET",
+                                dataType: "html",
+                                success: function (ajaxResult) {
+                                    $this.html(ajaxResult);
+                                    console.log(lazyUrl);
+                                }
+                            }));
+                        });
+
+                        $.when.apply(this, ajaxs).done(function () {
+                            console.log("All ajax done!");
+                            fn();
+                        });
+                    }
+                    else
                         fn();
+                };
+
+                let getJson = target.data("get-json");
+                if (getJson) {
+                    $.ajax({
+                        url: getJson,
+                        type: "GET",
+                        dataType: "json",
+                        success: function (data) {
+                            jsonObj = data;
+                            step2();
+                        }
                     });
                 }
                 else
-                    fn();
-            };
-
-            let getJson = target.data("get-json");
-            if (getJson) {
-                $.ajax({
-                    url: getJson,
-                    type: "GET",
-                    dataType: "json",
-                    success: function (data) {
-                        jsonObj = data;
-                        step2();
-                    }
-                });
+                    step2();
             }
-            else
-                step2();
-        }
+        });
     });
 
     $("[submit]").on("click", function (event) {
@@ -476,7 +563,7 @@ $(function () {
             $(value).slideUp("fast");
     });
 
-    $("[data-href]").on("click", function(){
+    $("[data-href]").on("click", function () {
         window.location = $(this).data("href");
     });
 
@@ -523,11 +610,48 @@ $(function () {
             url: `${$this.data("fill")}/${$this.val()}`,
             type: "GET",
             dataType: "html",
-            async : false,
+            async: false,
             success: function (data) {
                 const obj = $($this.data("fill-to"));
                 obj.html(data);
             }
         });
+    });
+
+    $("[select2]").each(function (element) {
+
+        const $this = $(this);
+        const ajaxUrl = $this.attr("select2-ajax");
+        const jsonData = $this.attr("select2-data");
+
+        $this.select2({
+            theme: "bootstrap-5",
+            focus: true,
+            dropdownParent: $this.parent(),
+            minimumInputLength: 3,
+            initialValue: true,
+            data: jsonData,
+            ajax: {
+                delay: 250,
+                url: ajaxUrl,
+                dataType: 'json',
+                type: "post",
+                data: function (params) {
+                    return {
+                        value: params.term, // search term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.message
+                    };
+                }
+            }
+        })
+
+    });
+
+    $(document).on('select2:open', () => {
+        document.querySelector('.select2-search__field').focus();
     });
 });
