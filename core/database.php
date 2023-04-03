@@ -1056,10 +1056,15 @@ class Database
 	 *
 	 * @return void
 	 */
-	public function getError()
+	public function getError() : mixed
 	{
 		if (null !== $this->error)
+		{
+			if(DEBUG)
+				return $this->error."<br>".$this->lastQuery();
+
 			return $this->error;
+		}
 	}
 
 	/**

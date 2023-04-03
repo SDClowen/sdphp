@@ -6,7 +6,7 @@
     function strdatestamp($time, $format = "d MMMM yyyy")
     {
         #$fmt = new \IntlDateFormatter(session_get("lang"), null, null); old
-        $fmt = new \IntlDateFormatter(session_get("lang"));
+        $fmt = new IntlDateFormatter(session_get("lang"));
 	    $fmt->setPattern($format); 
 	    return $fmt->format($time); 
     }

@@ -191,9 +191,17 @@ function validate(&$source, array $items)
                 case "clear":
 
                     if (is_object($source))
-                        $source->$item = htmlentities($source->$item, ENT_QUOTES | ENT_HTML5);
+                        $source->$item = htmlentities($source->$item, ENT_QUOTES);
                     else
-                        $source[$item] = htmlentities($source[$item], ENT_QUOTES | ENT_HTML5);
+                        $source[$item] = htmlentities($source[$item], ENT_QUOTES);
+
+                    break;
+                case "datetime":
+
+                    if (!validate_datetime($value)) {
+                        $errors[] = lang("validation.datetime_error", $rules["name"]);
+                        break 2;
+                    }
 
                     break;
             }
@@ -267,5 +275,10 @@ function validate_email($email)
     #if ( !(checkdnsrr($domain, 'MX') || checkdnsrr($domain, 'A')) ) 
     # return false;
 
+    return true;
+}
+
+function validate_datetime($value)
+{
     return true;
 }

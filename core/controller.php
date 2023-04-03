@@ -12,8 +12,7 @@ class Controller
     /*
      *  The database instance
      */
-    public $db;
-
+    public Database $db;
 
     /*
     * The system config
