@@ -7,7 +7,7 @@ class Config
 	public static function get()
 	{
 		if (null === self::$_instance) {
-			$config = Database::instance()->from("config")->results();
+			$config = Database::get()->from("config")->results();
 			$newStd = new stdClass;
 			foreach($config as $value)
 			{
@@ -36,7 +36,7 @@ class Config
 
 	public function update()
 	{
-		return Database::instance()->from("config")->update($this->_data);
+		return Database::get()->from("config")->update($this->_data);
 	}
 }
 ?>

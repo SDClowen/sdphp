@@ -4,14 +4,14 @@ defined("DIRECT") or exit("No direct script access allowed");
 
 class Model
 {
-	public $db;
+	public Database $db;
 
 	public function __construct()
 	{
-		$this->db = Database::instance();
+		$this->db = Database::get();
 	}
 
-	public static function new()
+	public static function new() : Model
     {
         $called = get_called_class();
 

@@ -1,6 +1,4 @@
-<?php 
-
-defined("DIRECT") or exit("No direct script access allowed");
+<?php
 
 class Request
 {
@@ -33,8 +31,12 @@ class Request
 	 */
 	public static function get($param = null, $filter = true)
 	{
-		if (is_null($param))
-			return $_GET;
+		if (is_null($param)){
+			if($filter)
+				return self::filterAll($_GET);
+			else
+				return $_GET;
+		}
 		else
 			return self::filter($_GET[$param], $filter);
 	}
@@ -49,16 +51,15 @@ class Request
 	{
 		if (is_null($param))
 		{
-			$pvars = new stdClass;
-			foreach ($_POST as $key => $value) {
-				$pvars->{$key} = self::filter($value, $filter);
-			}
-			return $pvars;
+			if($filter)
+				return self::filterAll($_POST);
+			else
+				return $_POST;
 		}
 		else
 			return self::filter($_POST[$param], $filter);
 	}
-	
+
 	/**
 	 * Put Variables
 	 *
@@ -70,7 +71,12 @@ class Request
 		parse_str(file_get_contents("php://input"), $_PUT);
 
 		if ($param == null)
-			return $_PUT;
+		{
+			if($filter)
+				return self::filterAll($_PUT);
+			else
+				return $_PUT;
+		}
 		else
 			return self::filter($_PUT[$param], $filter);
 	}
@@ -113,12 +119,14 @@ class Request
 							foreach ($value as $key2 => $sub_val) { // multi-array file submit, eg name="model[file][]"
 								$new_files[$name][$key][$key2][$attribute] = $sub_val;
 							}
-						} else {
+						}
+						else {
 							$new_files[$name][$key][$attribute] = $value;
 						}
 					}
 				}
-			} else { // regular file submit, eg name="file"
+			}
+			else { // regular file submit, eg name="file"
 				$new_files[$name] = $attributes;
 			}
 		}
@@ -134,9 +142,9 @@ class Request
 	 */
 	public static function files($param = null)
 	{
-		if(!is_null($param) && isset($_FILES[$param]))
+		if (!is_null($param) && isset($_FILES[$param]))
 			return $_FILES[$param];
-			
+
 		return json_decode(json_encode(self::multiFileFix($_FILES)));
 	}
 
@@ -261,13 +269,14 @@ class Request
 	{
 		if ($array === false) {
 			return $_SERVER['QUERY_STRING'];
-		} else {
-			$qsParts	= explode('&', $_SERVER['QUERY_STRING']);
-			$qsArray 	= [];
+		}
+		else {
+			$qsParts = explode('&', $_SERVER['QUERY_STRING']);
+			$qsArray = [];
 
 			foreach ($qsParts as $key => $value) {
-				$qsItems 				= explode('=', $value);
-				$qsArray[$qsItems[0]] 	= $qsItems[1];
+				$qsItems = explode('=', $value);
+				$qsArray[$qsItems[0]] = $qsItems[1];
 			}
 
 			return $qsArray;
@@ -291,7 +300,7 @@ class Request
 	 */
 	public static function getLocales()
 	{
-		if(isset($_SERVER['HTTP_ACCEPT_LANGUAGE']))
+		if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE']))
 			return explode(',', preg_replace('/(;q=[0-9\.]+)/i', '', trim($_SERVER['HTTP_ACCEPT_LANGUAGE'])));
 		else
 			return ["en-US"];
@@ -302,9 +311,12 @@ class Request
 	 *
 	 * @return string
 	 */
-	public static function getLocale()
+	public static function getLocale($lenght = 5)
 	{
-		return self::getLocales()[0];
+		$array = self::getLocales();
+		$locales = array_filter($array, fn($value) => strlen($value) == 5);
+
+		return current($locales);
 	}
 
 	/**
@@ -316,7 +328,7 @@ class Request
 	{
 		return self::getRequestMethod() === strtoupper($method);
 	}
-	
+
 	/**
 	 * Check if the request is an ajax request
 	 *
@@ -326,7 +338,7 @@ class Request
 	{
 		return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 	}
-	
+
 	/**
 	 * Check if the http request is secure
 	 *
@@ -388,13 +400,14 @@ class Request
 	{
 		return (self::isReferral()) ? trim($_SERVER['HTTP_REFERRER']) : '';
 	}
-	
+
 	/**
 	 * Get client IP
 	 *
 	 * @return string
 	 */
-	public static function getIp(){
+	public static function getIp()
+	{
 		$ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
 		foreach ($ip_keys as $key) {
 			if (array_key_exists($key, $_SERVER) === true) {
@@ -403,14 +416,23 @@ class Request
 					$ip = trim($ip);
 					// attempt to validate IP
 					if (validate_ip($ip)) {
-						return strlen($ip) > 20 ? substr($ip,0,20) : $ip;
+						return strlen($ip) > 20 ? substr($ip, 0, 20) : $ip;
 					}
 				}
 			}
 		}
 		return isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : false;
 	}
-	
+
+	public static function filterAll(array $data) : object
+	{
+		$pvars = new stdClass;
+		foreach ($data as $key => $value)
+			$pvars->{$key} = self::filter($value);
+		
+		return $pvars;
+	}
+
 	/**
 	 * Filter inputs
 	 *
@@ -418,14 +440,14 @@ class Request
 	 * @param boolean $filter
 	 * @return string | null
 	 */
-	public static function filter($data = null,$filter = true)
+	public static function filter($data = null, $filter = true)
 	{
 		$data = trim($data);
-		if(!$filter)
+		if (!$filter)
 			return $data;
-		
+
 		# Fix &entity\n;
-		$data = str_replace(array('&amp;','&lt;','&gt;'), array('&amp;amp;','&amp;lt;','&amp;gt;'), $data);
+		$data = str_replace(array('&amp;', '&lt;', '&gt;'), array('&amp;amp;', '&amp;lt;', '&amp;gt;'), $data);
 		$data = preg_replace('/(&#*\w+)[\x00-\x20]+;/u', '$1;', $data);
 		$data = preg_replace('/(&#x*[0-9A-F]+);*/iu', '$1;', $data);
 		$data = html_entity_decode($data, ENT_COMPAT, 'UTF-8');
@@ -446,14 +468,13 @@ class Request
 		# Remove namespaced elements (we do not need them)
 		$data = preg_replace('#</*\w+:\w[^>]*+>#i', '', $data);
 
-		do
-		{
+		do {
 			# Remove really unwanted tags
 			$old_data = $data;
 			$data = preg_replace('#</*(?:applet|b(?:ase|gsound|link)|embed|frame(?:set)?|i(?:frame|layer)|l(?:ayer|ink)|meta|object|s(?:cript|tyle)|title|xml)[^>]*+>#i', '', $data);
 		}
 		while ($old_data !== $data);
-		
+
 		return $data;
 	}
 }

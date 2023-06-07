@@ -22,7 +22,7 @@ class Controller
     /*
      * Create new instance of this class
      */
-    public static function new ()
+    public static function new () : Controller
     {
         return new self();
     }

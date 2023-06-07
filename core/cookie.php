@@ -131,12 +131,12 @@ class Cookie
 	public function get($name)
 	{
 		if($this->has($name)) {
-			if($this->config['cookie_security'] == true) {
+			if($this->config->security == true) {
 				$slices = explode($this->seperator, $_COOKIE[$name]);
-				if(md5($slices[0] . $this->config['encryption_key']) == $slices[1])
+				if(md5($slices[0] . $this->config->key) == $slices[1])
 					return $slices[0];
 				else
-					die('Cookie içeriği değiştirilmiş');
+					die('COOKIE_CHANGED_ERROR');
 			} else {
 				return $_COOKIE[$name];
 			}
@@ -148,14 +148,14 @@ class Cookie
 	 * @param 	string 	$name
 	 * @return 	bool
 	 */
-	public function delete($name)
+	public function delete($name) : Cookie
 	{
 		if($this->has($name)) {
 			unset($_COOKIE[$name]);
 			setcookie($name, '', time() - 3600, $this->path, $this->domain);
-		} else {
-			return false;
 		}
+
+		return $this;
 	}
 
 	/**

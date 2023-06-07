@@ -1,3 +1,4 @@
+
 <?php
 
 function multiple_isset($source, $item): bool
@@ -52,7 +53,7 @@ function validate(&$source, array $items)
                             if (isset($rule_value["lang"]))
                                 $errors[] = lang($rule_value["lang"], $rule_value["value"], $value);
                             else
-                                $errors[] = lang("validation.numeric.value.error", $rules['name'], $value, $rule_value, lang("small"));
+                                $errors[] = lang("validation.numeric.value.error", $rules['name'], $rule_value, lang("small"));
                         }
                     }
                     
@@ -211,7 +212,13 @@ function validate(&$source, array $items)
     if (empty($errors))
         return null;
 
-    return join('<br>', $errors);
+    //return join('<br>', $errors);
+    $message = "<ul>";
+    foreach ($errors as $key => $value) {
+        $message .= "<li>".$value."</li>";
+    }
+
+    return $message."</ul>";
 }
 
 /**

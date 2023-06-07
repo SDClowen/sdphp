@@ -97,7 +97,9 @@ class Cache
 						list($time[1], $time[0]) = explode(' ', microtime());
 						$finish = $time[1] + $time[0];
 						$total_time = number_format(($finish - $this->start), 6);
-						echo "{$total_time} saniyede yüklendi.";
+						
+						if(!Request::isAjax())
+							echo "{$total_time} saniyede yüklendi.";
 				}
 				ob_end_flush();
 			}

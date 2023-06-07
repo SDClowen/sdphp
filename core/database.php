@@ -8,55 +8,55 @@ class Database
 	public $pdo = null;
 
 	// Select statement
-	private $select 	= '*';
+	private $select = '*';
 	// Table name
-	private $table	= null;
+	private $table = null;
 
 	// Where statement
-	public $where	= null;
+	public $where = null;
 
 	// Limit statement
-	private $limit	= null;
+	private $limit = null;
 
 	// Join statement
-	private $join		= null;
+	private $join = null;
 
 	// Order By statement
-	private $orderBy	= null;
+	private $orderBy = null;
 
 	// Group By statement
-	private $groupBy	= null;
+	private $groupBy = null;
 
 	// Having statement
-	private $having	= null;
+	private $having = null;
 
 	// Last instert id
-	private $insertId	= null;
+	private $insertId = null;
 
 	// Custom query
-	private $custom 	= null;
+	private $custom = null;
 
 	// SQL Statement
-	private $sql		= null;
+	private $sql = null;
 
 	// Table prefix
-	private $prefix	= null;
+	private $prefix = null;
 
 	// using pdo driver
-	private $driver	= null;
+	private $driver = null;
 
 	// Error
-	private $error	= null;
+	private $error = null;
 
 	// Number of total rows
-	private $numRows	= 0;
+	private $numRows = 0;
 
 	// Group flag for where and having statements
-	private $grouped 	= 0;
+	private $grouped = 0;
 
 	// Singleton Class
 	private static $_instance;
-	
+
 	/**
 	 * Initializing
 	 *
@@ -64,59 +64,68 @@ class Database
 	 */
 	public function __construct()
 	{
-		$config = (object)require_once(APP_DIR."/config/database.php");
-		
+		$start = microtime(true);
+		$config = (object) require_once(APP_DIR . "/config/database.php");
+
 		$this->driver = $config->driver;
 		$this->prefix = $config->prefix;
 
 		$dsn = '';
 		// Setting connection string
-		if ($config->driver == 'mysql' || $config->driver == 'pgsql' || $config->driver == '') 
+		if ($config->driver == 'mysql' || $config->driver == 'pgsql' || $config->driver == '')
 			$dsn = $config->driver . ':host=' . $config->host . ';dbname=' . $config->name;
- 		elseif ($config->driver == 'sqlite') 
+		elseif ($config->driver == 'sqlite')
 			$dsn = 'sqlite:' . $config->name;
-		elseif ($config->driver == 'oracle') 
+		elseif ($config->driver == 'oracle')
 			$dsn = 'oci:dbname=' . $config->host . '/' . $config->name;
-		elseif($config->driver == "sqlsrv")
-			$dsn = "sqlsrv:Server=".$config->host.";";
+		elseif ($config->driver == "sqlsrv")
+			$dsn = "sqlsrv:Server=" . $config->host . ";";
 
-		if(empty($config->name))
+		if (empty($config->name))
 			return;
 
 		// Connecting to server
-		try
-		{
-			$attr[PDO::ATTR_ERRMODE]			=	PDO::ERRMODE_EXCEPTION;
-			$attr[PDO::ATTR_DEFAULT_FETCH_MODE]	=	PDO::FETCH_OBJ;
-			
+		try {
+			$attr[PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
+			$attr[PDO::ATTR_DEFAULT_FETCH_MODE] = PDO::FETCH_OBJ;
+
 			#if($config->driver == "sqlsrv")
-				#$attr[PDO::SQLSRV_ATTR_ENCODING]	=	PDO::SQLSRV_ENCODING_UTF8;
-			
-			if($config->driver == "mysql")
+			#$attr[PDO::SQLSRV_ATTR_ENCODING]	=	PDO::SQLSRV_ENCODING_UTF8;
+
+			if ($config->driver == "mysql")
 				$attr[PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES 'utf8'";
-			
-			$this->pdo = new PDO($dsn, $config->user, $config->password,$attr);
+
+			if($config->driver == "sqlsrv")
+			{
+				$attr[PDO::SQLSRV_ATTR_FORMAT_DECIMALS] = true;
+				$attr[PDO::SQLSRV_ATTR_DECIMAL_PLACES] = 2;
+			}
+
+			$this->pdo = new PDO($dsn, $config->user, $config->password, $attr);
 		}
-		catch(PDOException $e)
-		{
+		catch (PDOException $e) {
 			$errorMessage = "<b>DB ERROR</b><hr>Can not connect to Database<br><br>";
 
-			if(ini_get("display_errors"))
+			if (ini_get("display_errors"))
 				$errorMessage .= $e->getMessage();
 
 			die($errorMessage);
 		}
 
-		return $this->pdo;
+		$now = microtime(true);
+		$time = $now - $start;
+		$time += $now - $_SERVER["REQUEST_TIME_FLOAT"];
+
+		stackMessages("Database connected succesfully in ".number_format($time * 1000, 2)." ms");
 	}
 
-	public static function instance()
-    {
-        if (self::$_instance === null) {
-            self::$_instance = new self();
-        }
-        return self::$_instance;
-    }
+	public static function get() : Database
+	{
+		if (self::$_instance === null) {
+			self::$_instance = new self();
+		}
+		return self::$_instance;
+	}
 
 	/**
 	 * Defines columns to select
@@ -126,7 +135,7 @@ class Database
 	 */
 	public function select($select = null)
 	{
-		if (!is_null($select))
+		if (! is_null($select))
 			$this->select = $select;
 
 		return $this;
@@ -134,7 +143,7 @@ class Database
 
 	public function prefix($db)
 	{
-		$this->prefix = $this->driver == "sqlsrv" ? $db.".." : $db;
+		$this->prefix = $this->driver == "sqlsrv" ? $db . ".." : $db;
 		return $this;
 	}
 	/**
@@ -233,7 +242,7 @@ class Database
 
 		return $this;
 	}
-	
+
 	/**
 	 * Defines 'Join' operation
 	 *
@@ -270,7 +279,7 @@ class Database
 	{
 		return $this->pdo->quote(trim($data));
 	}
-	
+
 	/**
 	 * Defines 'where' operation
 	 *
@@ -282,15 +291,18 @@ class Database
 	 */
 	public function where($column, $op = '=', $value = '', $logic = 'AND', $escape = true)
 	{
-		if (is_null($this->where)){
-			$this->where = 'WHERE ' . $column . $op.($escape ? $this->_escape($value) : $value);
+		if (is_null($this->where)) {
+			$this->where = 'WHERE ' . $column . $op . ($escape ? $this->_escape($value) : $value);
 		}
 		else {
 			if ($this->grouped > 0) {
-				$this->where .= ' ' . $column . $op.($escape ? $this->_escape($value) : $value);;
+				$this->where .= ' ' . $column . $op . ($escape ? $this->_escape($value) : $value);
+				;
 				$this->grouped = 0;
-			} else {
-				$this->where .= ' ' . $logic . ' ' . $column . $op.($escape ? $this->_escape($value) : $value);;
+			}
+			else {
+				$this->where .= ' ' . $logic . ' ' . $column . $op . ($escape ? $this->_escape($value) : $value);
+				;
 			}
 		}
 
@@ -392,13 +404,11 @@ class Database
 	 */
 	public function limit($start, $rows = 0)
 	{
-		if ($rows === 0)
-		{
+		if ($rows === 0) {
 			if ($this->driver == "sqlsrv") {
 				$this->limit = ' TOP ' . $start;
 			}
-			else
-			{
+			else {
 				$this->limit = ' LIMIT ' . $start;
 			}
 		}
@@ -416,11 +426,11 @@ class Database
 	 */
 	public function groupBy($data)
 	{
-		$this->groupBy = "GROUP BY ".join(",",$data);
-		
+		$this->groupBy = "GROUP BY " . join(",", $data);
+
 		return $this;
 	}
-	
+
 	/**
 	 * Defines 'Group By' operation
 	 *
@@ -453,7 +463,8 @@ class Database
 			if ($this->grouped > 0) {
 				$this->having .= ' ' . $column . $op . $value;
 				$this->grouped = 0;
-			} else {
+			}
+			else {
 				$this->having .= ' ' . $logic . ' ' . $column . $op . $this->_escape($value);
 			}
 		}
@@ -550,7 +561,7 @@ class Database
 			$in_list .= $this->_escape($element) . ',';
 		}
 		$in_list = '(' . rtrim($in_list, ',') . ')';
-		
+
 		$this->where($column, ' in', $in_list, $logic, false);
 
 		return $this;
@@ -618,13 +629,14 @@ class Database
 	public function between($column, $first, $second, $logic = 'AND')
 	{
 		if (is_null($this->where))
-			$this->where = 'WHERE ' . $column . " BETWEEN " . $this->_escape($first)." $logic ". $this->_escape($second);
+			$this->where = 'WHERE ' . $column . " BETWEEN " . $this->_escape($first) . " $logic " . $this->_escape($second);
 		else {
 			if ($this->grouped > 0) {
-				$this->where .= ' ' . $column . " BETWEEN " . $this->_escape($first)." $logic ". $this->_escape($second);
+				$this->where .= ' ' . $column . " BETWEEN " . $this->_escape($first) . " $logic " . $this->_escape($second);
 				$this->grouped = 0;
-			} else {
-				$this->where .= ' AND ' . $column . " BETWEEN " . $this->_escape($first)." $logic ". $this->_escape($second);
+			}
+			else {
+				$this->where .= ' AND ' . $column . " BETWEEN " . $this->_escape($first) . " $logic " . $this->_escape($second);
 			}
 		}
 
@@ -676,17 +688,19 @@ class Database
 
 		return $this;
 	}
+
 	/**
 	 * Fetch a row
 	 *
 	 * @param string $fetch
 	 * @return object|array
 	 */
-	public function result($fetch = 'object')
+	public function result($fetch = 'object', $params = [])
 	{
 		try {
 			$this->_prepare();
-			$query = $this->pdo->query($this->sql);
+			$query = $this->pdo->prepare($this->sql);
+			$run = $query->execute($params);
 
 			$this->_reset();
 
@@ -694,9 +708,10 @@ class Database
 				$row = $query->fetch(PDO::FETCH_OBJ);
 			else
 				$row = $query->fetch(PDO::FETCH_ASSOC);
-			
+
 			return $row;
-		} catch (PDOException $e) {
+		}
+		catch (PDOException $e) {
 			$this->error = $e->getMessage();
 			echo $this->error;
 		}
@@ -708,15 +723,15 @@ class Database
 	 * @param string $fetch
 	 * @return object|array
 	 */
-	public function results($fetch = 'object')
+	public function results($fetch = 'object', $params = [])
 	{
 		try {
 			$this->_prepare();
 			$query = $this->pdo->prepare($this->sql);
-			$run = $query->execute();
+			$run = $query->execute($params);
 
 			$this->_reset();
-			if($run)
+			if ($run)
 				if ($fetch == 'array')
 					$result = $query->fetchAll(PDO::FETCH_ASSOC);
 				else
@@ -726,17 +741,18 @@ class Database
 
 			$this->numRows = $query->rowCount();
 			return $result;
-		} catch (PDOException $e) {
+		}
+		catch (PDOException $e) {
 			$this->error = $e->getMessage();
 		}
 	}
 
 
-	public function first()
+	public function first($params = [])
 	{
 		$this->_prepare();
 		$query = $this->pdo->prepare($this->sql);
-		$run = $query->execute();
+		$run = $query->execute($params);
 		$this->_reset();
 		if ($run)
 			return $query->fetchColumn(0);
@@ -762,8 +778,8 @@ class Database
 	 */
 	private function _prepare()
 	{
-		if (!$this->custom)
-			$this->sql = rtrim('SELECT '.($this->driver == "sqlsrv" ? $this->limit : "").' '.$this->select.' FROM '.$this->table.' '.$this->join.' ' . $this->where . ' ' . $this->groupBy . ' ' . $this->having . ' ' . $this->orderBy . ' ' . ($this->driver != "sqlsrv" ? $this->limit : ""));
+		if (! $this->custom)
+			$this->sql = rtrim('SELECT ' . ($this->driver == "sqlsrv" ? $this->limit : "") . ' ' . $this->select . ' FROM ' . $this->table . ' ' . $this->join . ' ' . $this->where . ' ' . $this->groupBy . ' ' . $this->having . ' ' . $this->orderBy . ' ' . ($this->driver != "sqlsrv" ? $this->limit : ""));
 	}
 
 	/**
@@ -772,13 +788,13 @@ class Database
 	 * @param string $query
 	 * @return mixed
 	 */
-	public function query($query)
+	public function query($query) : Database
 	{
-		$this->custom 	= true;
-		$this->sql 	= $query;
+		$this->custom = true;
+		$this->sql = $query;
 		return $this;
 	}
-	
+
 	/**
 	 * Insert a row to table
 	 *
@@ -788,42 +804,40 @@ class Database
 	public function insert($data)
 	{
 		$insert_sql = 'INSERT INTO ' . $this->table . '(';
-		$col 		= [];
-		$val 		= [];
-		$stmt		= [];
-		$insert_sql.= implode(',', array_keys($data)).') VALUES(';
+		$col = [];
+		$val = [];
+		$stmt = [];
+		$insert_sql .= implode(',', array_keys($data)) . ') VALUES(';
 		foreach ($data as $column => $value) {
-			$val[] 	= $value;
-			$col[] 	= ' ? ';
-			$stmt[]	= $this->_escape($value);
+			$val[] = $value;
+			$col[] = ' ? ';
+			$stmt[] = $this->_escape($value);
 		}
-		
-		$this->sql 	= $insert_sql . implode(', ', $stmt).');';
+
+		$this->sql = $insert_sql . implode(', ', $stmt) . ');';
 		$insert_sql .= implode(',', $col);
 		$insert_sql .= ');';
 
-		if($this->driver == "sqlsrv")
+		if ($this->driver == "sqlsrv")
 			$insert_sql .= " select scope_identity()";
 
 		try {
-			$query 	= $this->pdo->prepare($insert_sql);
+			$query = $this->pdo->prepare($insert_sql);
 			$executing = $query->execute($val);
-			
+
 			$this->_reset();
 
-			if (!$executing) 
+			if (! $executing)
 				return false;
-				
-			if($this->driver == "sqlsrv")
-			{
+
+			if ($this->driver == "sqlsrv") {
 				$query->nextRowSet();
 				$this->insertId = $query->fetchColumn(0);
 			}
-			
+
 			$this->insertId = $this->pdo->lastInsertId();
-		} 
-		catch(PDOException $e)
-		{
+		}
+		catch (PDOException $e) {
 			$this->error = $e->getMessage();
 		}
 
@@ -843,34 +857,34 @@ class Database
 
 		$update_sql = 'UPDATE ' . $this->table . ' SET ';
 
-		$col 	= [];
-		$val 	= [];
-		$stmt	= [];
+		$col = [];
+		$val = [];
+		$stmt = [];
 
 		foreach ($data as $column => $value) {
-			$val[] 	= $value;
-			$col[] 	= $column . '= ? ';
-			$stmt[]	= $column . $op . $this->_escape($value);
+			$val[] = $value;
+			$col[] = $column . '= ? ';
+			$stmt[] = $column . $op . $this->_escape($value);
 		}
 
-		$this->sql 	= $update_sql . implode(', ', $stmt);
+		$this->sql = $update_sql . implode(', ', $stmt);
 		$update_sql .= implode(',', $col);
 
-		$this->sql 	.= ' ' . $this->where;
-		$update_sql	.= ' ' . $this->where;
+		$this->sql .= ' ' . $this->where;
+		$update_sql .= ' ' . $this->where;
 		try {
-			$query 		= $this->pdo->prepare($update_sql);
-			$update 	= $query->execute($val);
+			$query = $this->pdo->prepare($update_sql);
+			$update = $query->execute($val);
 			// reset
 			$this->_reset();
 
-			if (!$update)
+			if (! $update)
 				return false;
 
 			return $query->rowCount();
 
-		} catch(PDOException $e)
-		{
+		}
+		catch (PDOException $e) {
 			$this->error = $e->getMessage();
 		}
 	}
@@ -885,24 +899,63 @@ class Database
 		if (is_null($this->table))
 			throw new Exception('DB Hatası', 'DELETE işlemi yapılacak tablo seçilmedi.');
 
-		$delete_sql	= 'DELETE FROM ' . $this->table . ' ' . $this->where;
-		$this->sql 	= $delete_sql;
+		$delete_sql = 'DELETE FROM ' . $this->table . ' ' . $this->where;
+		$this->sql = $delete_sql;
 
 		try {
-			$query 		= $this->pdo->prepare($delete_sql);
-			$executeQuery 	= $query->execute();
+			$query = $this->pdo->prepare($delete_sql);
+			$executeQuery = $query->execute();
 			// reset
 			$this->_reset();
 
-			if (!$executeQuery) {
+			if (! $executeQuery) {
 				return 0;
 			}
 
 			return $query->rowCount();
-			
-		} catch(PDOException $e)
-		{
+
+		}
+		catch (PDOException $e) {
 			$this->error = $e->getMessage();
+		}
+	}
+
+	/**
+	 * Fetch a row
+	 *
+	 * @param string $fetch
+	 * @return object|array
+	 */
+	public function proc($params = [], $fetch = 'object', $first = false)
+	{
+		try {
+			$this->sql = "
+				set nocount on
+				declare @r int
+				exec @r = $this->sql
+				select @r result
+			";
+
+			$this->_prepare();
+			$query = $this->pdo->prepare($this->sql);
+			$run = $query->execute($params);
+
+			$this->_reset();
+
+			if (! $first) {
+				if ($fetch == 'object')
+					$row = $query->fetch(PDO::FETCH_OBJ);
+				else
+					$row = $query->fetch(PDO::FETCH_ASSOC);
+			}
+			else
+				return $query->fetchColumn(0);
+
+			return $row;
+		}
+		catch (PDOException $e) {
+			$this->error = $e->getMessage();
+			echo $this->error;
 		}
 	}
 
@@ -923,8 +976,8 @@ class Database
 				return $query->fetch(PDO::FETCH_ASSOC);
 			else
 				return $query->fetch(PDO::FETCH_OBJ);
-		} catch(PDOException $e)
-		{
+		}
+		catch (PDOException $e) {
 			$this->error = $e->getMessage();
 		}
 	}
@@ -946,8 +999,8 @@ class Database
 				return $query->fetch(PDO::FETCH_ASSOC);
 			else
 				return $query->fetch(PDO::FETCH_OBJ);
-		} catch(PDOException $e)
-		{
+		}
+		catch (PDOException $e) {
 			$this->error = $e->getMessage();
 		}
 	}
@@ -969,8 +1022,8 @@ class Database
 				return $query->fetch(PDO::FETCH_ASSOC);
 			else
 				return $query->fetch(PDO::FETCH_OBJ);
-		} catch(PDOException $e)
-		{
+		}
+		catch (PDOException $e) {
 			$this->error = $e->getMessage();
 		}
 	}
@@ -992,8 +1045,8 @@ class Database
 				return $query->fetch(PDO::FETCH_ASSOC);
 			else
 				return $query->fetch(PDO::FETCH_OBJ);
-		} catch(PDOException $e)
-		{
+		}
+		catch (PDOException $e) {
 			$this->error = $e->getMessage();
 		}
 	}
@@ -1015,8 +1068,8 @@ class Database
 				return $query->fetch(PDO::FETCH_ASSOC);
 			else
 				return $query->fetch(PDO::FETCH_OBJ);
-		} catch(PDOException $e)
-		{
+		}
+		catch (PDOException $e) {
 			$this->error = $e->getMessage();
 		}
 	}
@@ -1058,13 +1111,14 @@ class Database
 	 */
 	public function getError() : mixed
 	{
-		if (null !== $this->error)
-		{
-			if(DEBUG)
-				return $this->error."<br>".$this->lastQuery();
+		if (null !== $this->error) {
+			if (DEBUG)
+				return $this->error . "<br>" . $this->lastQuery();
 
 			return $this->error;
 		}
+
+		return false;
 	}
 
 	/**
@@ -1074,18 +1128,18 @@ class Database
 	 */
 	private function _reset()
 	{
-		$this->prefix 		= "";
-		$this->select 		= '*';
-		$this->table		= null;
-		$this->where		= null;
-		$this->limit		= null;
-		$this->join			= null;
-		$this->orderBy		= null;
-		$this->groupBy		= null;
-		$this->having		= null;
-		$this->custom 		= null;
-		$this->numRows		= 0;
-		$this->grouped 		= 0;
+		$this->prefix = "";
+		$this->select = '*';
+		$this->table = null;
+		$this->where = null;
+		$this->limit = null;
+		$this->join = null;
+		$this->orderBy = null;
+		$this->groupBy = null;
+		$this->having = null;
+		$this->custom = null;
+		$this->numRows = 0;
+		$this->grouped = 0;
 	}
 
 	function __destruct()
