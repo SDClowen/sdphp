@@ -1,12 +1,69 @@
 $(function () {
 
+    var style = document.createElement("style");
+    style.append(`
+        @keyframes spinner {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinner {
+            color: transparent !important;
+            /*min-height: 50%;*/
+            pointer-events: none;
+            position: relative;
+        }
+
+        .spinner::after {
+            animation: spinner .3s linear infinite;
+            border-radius: 50%;
+            border: 2px solid #ccc;
+            border-top-color: var(--bs-primary);
+            content: "";
+            display: block;
+            height: 1rem;
+            left: 50%;
+            margin-left: -.4rem;
+            margin-top: -.4rem;
+            position: absolute;
+            top: 50%;
+            width: 1rem;
+            z-index: 1;
+        }
+    `)
+    
+    document.head.appendChild(style)
+
     /**
      * Show active class on the linked tag after which page is viewed
      */
-    if (location.pathname) {
-        let pathElement = $("ul a[href='" + location.pathname + "']");
-        pathElement.addClass("active").attr("href", "#").attr("onclick", "return false");
+    const applyPathName = function () {
+        if (location.pathname) {
+
+            const pathElement = document.querySelector("ul a[href='" + location.pathname + "']")
+            
+            const pathElements = document.querySelectorAll("ul li")
+            pathElements.forEach(element => {
+                element.classList.remove("active");
+                element.removeAttribute("onclick");
+            })
+            
+            if(pathElement)
+            {
+                pathElement.classList.add("active")
+                pathElement.attributes["href"] = "#";
+
+                if(pathElement.hasAttribute("onclick"))
+                    pathElement.removeAttribute("onclick");
+
+                pathElement.setAttribute("onclick", "return false")
+            }
+        }
     }
+
+    // When page firstly load, apply the path name to sidebars
+    applyPathName();
 
     /**
      * Show error message with alert lazy:run(); :=)
@@ -63,6 +120,174 @@ $(function () {
         }, 500, 'linear');
     }
 
+    $.fn.initDataTable = function () {
+
+        const current = $(this);
+
+        let info = true,
+            searching = true,
+            paginate = true;
+
+        if (current.attr("dt-info"))
+            info = current.attr("dt-info") == "true";
+
+        if (current.attr("dt-search"))
+            searching = current.attr("dt-search") == "true";
+
+        if (current.attr("dt-paginate"))
+            paginate = current.attr("dt-paginate") == "true";
+
+        const lang = $("html").attr("lang");
+
+        let config = {
+            //serverSide: true,
+            responsive: true,
+            autoWidth: false,
+            searching: searching,
+            processing: false,
+            info: info,
+            paging: paginate,
+            language: {
+                url: `/app/public/json/${lang.toLowerCase()}.json`,
+            },
+        };
+
+        if (current.attr("datatable-enable-exports")) {
+
+            const getExportHeader = current.attr("export-header");
+            const getExportFooter = current.attr("export-footer");
+
+            config.exports = {
+                buttons: [
+                    {
+                        extend: 'copy',
+                        messageTop: getExportHeader,
+                        messageBottom: getExportFooter,
+                    },
+                    'csv',
+                    {
+                        extend: 'excel',
+                        messageTop: getExportHeader,
+                        messageBottom: getExportFooter,
+                        exportOptions: {
+                            stripNewLines: false
+                        }
+                    },
+                    {
+                        extend: 'pdf',
+                        messageTop: getExportHeader,
+                        messageBottom: getExportFooter,
+                    },
+                    {
+                        extend: 'print',
+                        messageTop: getExportHeader,
+                        messageBottom: getExportFooter,
+                    }
+                ],
+                dom: '<"top"p>Blrtip',
+                bInfo: false,
+            };
+        }
+
+        if (current.attr("datatable-ajax")) {
+            config.ajax = {
+                method: "post",
+                url: current.attr("datatable-ajax"),
+                dataType: "json",
+                async: true,
+                beforeSend: function () {
+                    // Here, manually add the loading message.
+                    current.children("tbody").html(
+                        '<tr><td colspan="122" class="spinner p-4"></td></tr>'
+                    );
+                }
+            };
+        }
+
+        current.DataTable(config);
+    }
+
+    $.fn.initSelect2 = function () {
+        const $this = $(this);
+        const ajaxUrl = $this.attr("select2-ajax");
+        let jsonData = $this.attr("select2-data");
+        const template = $this.attr("template");
+
+        let config = {
+            theme: "bootstrap-5",
+            focus: true,
+            dropdownParent: $this.parent(),
+            minimumInputLength: -1,
+            initialValue: true
+        };
+
+        if (jsonData) {
+            var array = new Array();
+            jsonData = $.parseJSON(jsonData)
+            for (const [sKey, data] of Object.entries(jsonData)) {
+
+                const percent = (data.size / data.capacity * 100).toFixed(1);
+
+                array.push({
+                    id: data.id,
+                    text: data.title,
+                    html: `<div class="d-flex justify-content-between">
+                        <span>
+                            ${data.title}<br>
+                            <small class="text-muted">${data.name}</small>
+                        </span>
+                        <span>
+                            <div class="progress border" role="progressbar" aria-label=""
+                                aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                    style="width: ${percent}%">
+                                    ${percent}%
+                                </div>
+                            </div>
+                            <small class="text-muted d-flex justify-content-between">
+                                <span class="ps-1">${(data.size * 1.0).toFixed(1)}</span>
+                                <span class="pe-1 ms-3">${(data.capacity * 1.0).toFixed(1)}</span>
+                            </small>
+                        </span>
+                    </div>`
+                });
+            }
+
+            config.data = array;
+            config.escapeMarkup = function (markup) {
+                return markup;
+            }
+            config.templateResult = function (data) {
+                return data.html;
+            }
+            config.templateSelection = function (data) {
+                return data.text;
+            }
+        }
+
+        if (ajaxUrl) {
+            config.minimumInputLength = 3;
+            config.ajax = {
+                delay: 250,
+                url: ajaxUrl,
+                dataType: 'json',
+                type: "post",
+                data: function (params) {
+                    return {
+                        value: params.term, // search term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.message
+                    };
+                }
+            }
+        }
+
+        $this.select2(config)
+    }
+
     const currentDateTime = () => {
         var tzoffset = new Date().getTimezoneOffset() * 60000; //offset in milliseconds
         var localISOString = new Date(Date.now() - tzoffset)
@@ -74,11 +299,9 @@ $(function () {
             0,
             ((localISOString.indexOf("T") | 0) + 6) | 0
         );
-        console.log(datetimeInputString);
+
         return datetimeInputString;
     };
-
-    $("[current-datetime]").val(currentDateTime());
 
     function updateTableIndexes(table) {
         let index = 0;
@@ -88,8 +311,10 @@ $(function () {
         });
     }
 
-    function sdajax($this, spinnerObj, onAjaxDone, xhrUrl, xhrData = false, xhrType = "get", xhrDataType = "json") {
+    $.fn.sdajax = function(spinnerObj, onAjaxDone, xhrUrl, xhrData = false, xhrType = "get", xhrDataType = "json"){
         spinnerObj.spinner();
+        
+        const $this = $(this)
 
         const content = $($this.data("content"));
         let contentType = $this.data("content-type");
@@ -113,6 +338,7 @@ $(function () {
             redirect = redirect.split(":");
 
         let settings = {};
+        settings.async = true;
         settings.type = xhrType;
         settings.url = xhrUrl;
         settings.dataType = xhrDataType;
@@ -153,7 +379,11 @@ $(function () {
 
                         const addingTable = $($this.attr("datatable")).DataTable();
 
-                        addingTable.row.add(data.message).draw();
+                        let dataTableJson = data.message;
+                        if (dataTableJson.datatable)
+                            dataTableJson = dataTableJson.datatable;
+
+                        addingTable.row.add(dataTableJson).draw();
 
                         break;
 
@@ -183,6 +413,11 @@ $(function () {
                         datatable.row.update(data.message).draw();*/
                         break;
                 }
+
+                // TODO: Extend this code block to app.js
+                if (data.message.terminal)
+                    window.location.href = data.message.terminal;
+
                 if (autoUpdate) {
                     const target = $this.data("parent");
                     if (autoUpdateType == "one")
@@ -225,15 +460,15 @@ $(function () {
                     setTimeout(function () { window.location.href = redirect[0]; }, redirect[1]);
             }
 
+            onAjaxDone?.(data);
+
+            if (data.refresh)
+                location.reload();
+
             if (data.redirect) {
                 redirect = data.redirect.split(":");
-                if (redirect == "REFRESH-PAGE")
-                    location.reload();
-                else
-                    setTimeout(function () { window.location.href = redirect[0]; }, redirect[1]);
+                setTimeout(function () { window.location.href = redirect[0]; }, redirect[1]);
             }
-
-            onAjaxDone?.(data);
         };
 
         $.ajax(settings)
@@ -254,7 +489,7 @@ $(function () {
         if (!actionType)
             actionType = "get";
 
-        sdajax($this, $this, null, url, false, actionType);
+        $this.sdajax($this, null, url, false, actionType);
 
         //return false;
     });
@@ -283,9 +518,23 @@ $(function () {
             url = url + "/" + num;
         }
 
-        sdajax($this, $this, function (data) {
+        $this.sdajax($this, function (data) {
             if (hasCountable)
                 $this.data("countable", num);
+
+            const pushState = $this.data("push")
+            if (pushState) {
+                window.history.pushState(null, null, url)
+                applyPathName()
+
+                const dataContent = $this.data("content");
+                $(`${dataContent} [datatable=true]`).each(function () {
+
+                    const current = $(this);
+
+                    current.initDataTable();
+                })
+            }
 
         }, url, false, actionType, actionDataType);
 
@@ -309,7 +558,7 @@ $(function () {
             else
                 button = event.handleObj.handler.arguments[1].submitter;
 
-            sdajax($this, button, function (data) {
+            $this.sdajax(button, function (data) {
                 if (data.type == "success") {
                     //$this[0].reset();
 
@@ -379,16 +628,16 @@ $(function () {
                     error();
             }
         })
-        .always(() => {
-            $update.spinner();
-        });
+            .always(() => {
+                $update.spinner();
+            });
     });
 
     const modals = document.querySelectorAll(".modal");
     modals.forEach(element => {
 
         element.addEventListener("hidden.bs.modal", event => {
-            const form = $(this).find("form");
+            const form = $(event.currentTarget).find("form");
             form.resetForm();
             form.find("textarea").val("");
         });
@@ -398,13 +647,32 @@ $(function () {
          */
         element.addEventListener("show.bs.modal", event => {
 
-            const target = $(event.relatedTarget);
+            let target = $(event.relatedTarget);
             const modal = $(event.currentTarget);
             const titleContent = modal.find('.modal-title');
             const title = target.data('title');
 
+            const private = modal.data("private");
+            if (private) {
+                if (!event.relatedTarget)
+                    target = $(document.createElement('tempdata'));
+
+                target.data("json", private.message.data)
+                target.data("select-name", private.message.selectName)
+                target.data("select", private.message.selectData)
+                target.data("action", private.message.action)
+            }
+
+            var trigger = target.data("trigger");
+            if(trigger)
+                $(trigger).trigger(target.data("trigger-type"));
+
+            var dataRun = target.data("run");
+            if(dataRun)
+                eval(dataRun)
+
             if (title)
-                titleContent.text(title);
+                titleContent.html(title);
 
             const action = target.data("action");
             if (action) {
@@ -416,7 +684,20 @@ $(function () {
 
                 const dataTableName = target.attr("datatable-name");
                 if (dataTableName)
-                    form.attr("datatable-name", dataTableName);
+                    form.attr("datatable", dataTableName);
+
+                // private call from dom elements
+                const datatableAjax = target.attr("datatable-ajax");
+                if (datatableAjax && dataTableName) {
+                    const dataTableDom = $(dataTableName);
+
+                    dataTableDom.attr("datatable-ajax", action);
+
+                    if (DataTable.isDataTable(dataTableName))
+                        dataTableDom.DataTable().destroy();
+
+                    dataTableDom.initDataTable();
+                }
 
                 const targetAutoUpdate = target.data("auto-update");
                 if (targetAutoUpdate) {
@@ -434,17 +715,27 @@ $(function () {
                 let jsonObj = target.data("json");
 
                 const fn = function () {
-
+                    
                     if (jsonObj) {
                         for (const [name, value] of Object.entries(jsonObj)) {
-                            console.log(`${name}    ${value}`);
                             let item = $('[name="' + name + '"]', form);
+                            if (!item.length)
+                                continue;
 
                             if (item.is("select")) {
-                                if (target.data("select")) {
-                                    item.html("");
-                                    for (const [sKey, sVal] of Object.entries(target.data("select"))) {
-                                        item.append(`<option value="${sVal[0]}">${sVal[1]}</option>`);
+                                const selectNames = target.data("select-name");
+                                if (selectNames && selectNames.includes(name)) {
+                                    const selectData = target.attr("data-select-" + name);
+                                    const selectDataTest = target.data("select-" + name);
+                                    if(selectData)
+                                    {
+                                        item.html("");
+
+                                        for (const [sKey, sVal] of Object.entries(JSON.parse(selectData))) {
+
+                                            const v = Object.values(sVal);
+                                            item.append(`<option value="${v[0]}">${v[1]}</option>`);
+                                        }
                                     }
                                 }
 
@@ -467,8 +758,14 @@ $(function () {
                                         item.attr('checked', value > 0);
                                         break;
                                     case 'radio':
-                                        var id = item.find('[value="' + value + '"]');
-                                        id.attr('checked', 'checked');
+                                        item.each((element, elementValue) => {
+
+                                            if (elementValue.value == value) {
+                                                elementValue.checked = true;
+                                                $(elementValue).parent().tab('show');
+                                            }
+
+                                        });
                                         break;
                                     case 'file':
                                         break;
@@ -510,6 +807,11 @@ $(function () {
                         lazyData.each(function () {
                             const $this = $(this);
 
+                            if (target.data("select-name") == $this.attr("name") &&
+                                target.attr("modal-lazy-data")) {
+                                $this.attr("modal-lazy-data", target.attr("modal-lazy-data"));
+                            }
+
                             const lazyUrl = $this.attr("modal-lazy-data");
                             ajaxs.push($.ajax({
                                 url: lazyUrl,
@@ -517,7 +819,6 @@ $(function () {
                                 dataType: "html",
                                 success: function (ajaxResult) {
                                     $this.html(ajaxResult);
-                                    console.log(lazyUrl);
                                 }
                             }));
                         });
@@ -606,52 +907,54 @@ $(function () {
         if (!actionDataType)
             actionDataType = "json";
 
-        $.ajax({
-            url: `${$this.data("fill")}/${$this.val()}`,
-            type: "GET",
-            dataType: "html",
-            async: false,
-            success: function (data) {
-                const obj = $($this.data("fill-to"));
-                obj.html(data);
-            }
+        const fillTo = $this.data("fill-to");
+        const data = fillTo.split(",");
+        const ajaxUrls = $this.data("fill").split(",");
+
+        data.forEach((element, i) => {
+            $(element).sdajax($(element), function (data) {
+                const obj = $(element);
+
+                if (!obj.attr("select2"))
+                    obj.html(data);
+                else {
+                    obj.attr("select2-data", JSON.stringify(data));
+                    obj.initSelect2();
+                }
+
+            }, `${ajaxUrls[i]}/${$this.val()}`, false, actionType, actionDataType);
+            /*
+            $.ajax({
+                url: `${ajaxUrls[i]}/${$this.val()}`,
+                type: "GET",
+                dataType: "html",
+                async: true,
+                success: function (data) {
+                    const obj = $(element);
+                    obj.html(data);
+                }
+            });*/
         });
+
     });
 
     $("[select2]").each(function (element) {
 
-        const $this = $(this);
-        const ajaxUrl = $this.attr("select2-ajax");
-        const jsonData = $this.attr("select2-data");
+        const current = $(this);
 
-        $this.select2({
-            theme: "bootstrap-5",
-            focus: true,
-            dropdownParent: $this.parent(),
-            minimumInputLength: 3,
-            initialValue: true,
-            data: jsonData,
-            ajax: {
-                delay: 250,
-                url: ajaxUrl,
-                dataType: 'json',
-                type: "post",
-                data: function (params) {
-                    return {
-                        value: params.term, // search term
-                    };
-                },
-                processResults: function (data) {
-                    return {
-                        results: data.message
-                    };
-                }
-            }
-        })
+        current.initSelect2();
+    });
 
+    $("[datatable=true]").each(function () {
+
+        const current = $(this);
+
+        current.initDataTable();
     });
 
     $(document).on('select2:open', () => {
         document.querySelector('.select2-search__field').focus();
     });
+
+    $("[current-datetime]").val(currentDateTime());
 });
