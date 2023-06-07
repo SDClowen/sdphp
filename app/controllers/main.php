@@ -6,7 +6,7 @@
 			echo "This Welcome::index";
 		}
 
-		#[route(method: "GET", uri: "login")]
+		#[route(method: route::get, uri: "login")]
 		public function test()
 		{
 			echo "Hello this is test functi0n";
