@@ -1,0 +1,12 @@
+{
+    "name": "sdclowen/sdphp",
+    "description": "A micro php framework for micro projects ;)",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "sdclowen\\sdphp\\": "core/"
+        }
+    },
+    "require": {}
+}
