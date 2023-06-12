@@ -128,7 +128,7 @@ final class App
 
     private static function findMethod(&$controller, string $name)
     {
-        $reflection = new \ReflectionClass("App\\".$controller);
+        $reflection = new \ReflectionClass("App\\Controllers\\".$controller);
         $controller = $reflection->newInstance();
         
         $method = route::get;
@@ -188,7 +188,7 @@ final class App
         if(!file_exists($controllerPath))
             debug("Controller Path not found\n $controllerPath");
             
-        require_once $controllerPath;
+        #require_once $controllerPath;
 
         $action = self::findMethod(self::$controller, self::$action);
         if(!$action)
