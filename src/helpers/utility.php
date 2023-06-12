@@ -1,5 +1,37 @@
 <?php
 
+/**
+ * Load javascript asset file from public
+ */
+function ajs($path)
+{
+	return "<script src='/app/public/js/$path'></script>";
+}
+
+/**
+ * Load css asset file from public
+ */
+function acss($path)
+{
+	return "<link type='text/css' href='/app/public/css/$path' rel='stylesheet'>";
+}
+
+/**
+ * Load javascript asset file from node modules
+ */
+function njs($path)
+{
+	return "<script src='/node_modules/$path'></script>";
+}
+
+/**
+ * Load css asset file from node modules
+ */
+function ncss($path)
+{
+	return "<link type='text/css' href='/node_modules/$path' rel='stylesheet'>";
+}
+
 function langShort()
 {
 	global $cookie;
