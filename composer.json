@@ -3,6 +3,7 @@
     "description": "A micro php framework",
     "type": "library",
     "require": {
+        "php": ">=8.0"
     },
     "license": "MIT",
     "autoload": {
