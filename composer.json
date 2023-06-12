@@ -1,0 +1,22 @@
+{
+    "name": "sdclowen/sdphp",
+    "description": "A micro php framework",
+    "type": "library",
+    "require": {
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Core\\": "src/",
+            "App\\": "app/",
+            "App\\Models\\": "app/models/",
+            "App\\Controllers\\": "app/controllers/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Mahmut YILDIRIM",
+            "email": "mahmutyildirim@outlook.com.tr"
+        }
+    ]
+}
