@@ -2,11 +2,12 @@
     "name": "sdclowen/sdphp",
     "description": "A micro php framework",
     "type": "library",
+    "keywords": ["sdphp","framework","sdclowen"],
     "version": "1.0.0",
+    "license": "MIT",
     "require": {
         "php": ">=8.0"
     },
-    "license": "MIT",
     "autoload": {
         "psr-4": {
             "Core\\": "src/",
