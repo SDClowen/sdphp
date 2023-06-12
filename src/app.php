@@ -39,8 +39,6 @@ final class App
 
         session_start();
 
-        require $appDir."/vendor/autoload.php";
-
         # CSRF hatasına sebep oluyor remove
         /* session_start([
             'cookie_httponly' => true,
