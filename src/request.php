@@ -427,7 +427,7 @@ class Request
 
 	public static function filterAll(array $data) : object
 	{
-		$pvars = new stdClass;
+		$pvars = new \stdClass;
 		foreach ($data as $key => $value)
 			$pvars->{$key} = self::filter($value);
 		
