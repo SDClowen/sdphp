@@ -10,10 +10,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Core\\": "src/",
-            "App\\": "app/",
-            "App\\Models\\": "app/models/",
-            "App\\Controllers\\": "app/controllers/"
+            "Core\\": "src/"
         }
     },
     "authors": [
