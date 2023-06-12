@@ -2,6 +2,7 @@
     "name": "sdclowen/sdphp",
     "description": "A micro php framework",
     "type": "library",
+    "version": "1.0.0",
     "require": {
         "php": ">=8.0"
     },
