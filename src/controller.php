@@ -1,6 +1,8 @@
 <?php
 namespace Core;
 
+use Latte\Engine as LatteEngine;
+
 class Controller
 {
     /*
@@ -14,14 +16,14 @@ class Controller
     public Database $db;
 
     /*
-    * The system config
+     * The system config
      */
     public $config;
 
     /*
      * Create new instance of this class
      */
-    public static function new () : Controller
+    public static function new() : Controller
     {
         return new self();
     }
@@ -34,25 +36,50 @@ class Controller
      *
      * @return void 
      */
-    public function render($view, array $args = [], $isEcho = true)
+    public function render(string $view, array $args = [], bool $isEcho = true)
     {
-        if (!file_exists($file = VDIR . "/" . strtolower($view) . ".php"))
+        global $appConfig;
+        $useTemplateEngine = true;
+
+        if (! file_exists($file = VDIR . "/" . strtolower($view) . ".php"))
             exit("Could not found the view file: $view");
 
-        extract($args, EXTR_SKIP);
-        ob_start();
+        if ($useTemplateEngine) {
+            $latte = new LatteEngine;
+            $latte->setTempDirectory(APP_DIR . "/caches");
+            $latte->setAutoRefresh(strtolower($appConfig->mode) == "development");
 
-        if (is_readable($file))
-            require $file;
-        else
-            exit("Could not found the view file: $view");
+            if($isEcho)
+                $latte->render($file, $args);
+            else
+                return $latte->renderToString($file, $args);
+        } else {
+            extract($args, EXTR_SKIP);
+            ob_start();
 
-        $result = ob_get_clean();
+            if (is_readable($file))
+                require $file;
+            else
+                exit("Could not found the view file: $view");
 
-        if (!$isEcho)
-            return $result;
+            $result = ob_get_clean();
 
-        echo $result;
+            if (!$isEcho)
+                return $result;
+
+            echo $result;
+        }
+    }
+
+    public function view(string $normalView, string $xhrView, string $title, array $data = [])
+    {
+        $data["title"] = $title;
+        $data["content"] = $this->render($xhrView, $data, false);
+
+        if (Request::isAjax())
+            die(data_json($data));
+
+        $this->render($normalView, $data);
     }
 }
 ?>

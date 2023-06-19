@@ -5,7 +5,7 @@
  */
 function ajs($path)
 {
-	return "<script src='/app/public/js/$path'></script>";
+	return "<script src='/app/public/js/$path.js'></script>";
 }
 
 /**
@@ -13,7 +13,7 @@ function ajs($path)
  */
 function acss($path)
 {
-	return "<link type='text/css' href='/app/public/css/$path' rel='stylesheet'>";
+	return "<link type='text/css' href='/app/public/css/$path.css' rel='stylesheet'>";
 }
 
 /**
@@ -21,7 +21,7 @@ function acss($path)
  */
 function njs($path)
 {
-	return "<script src='/node_modules/$path'></script>";
+	return "<script src='/node_modules/$path.js'></script>";
 }
 
 /**
@@ -29,7 +29,7 @@ function njs($path)
  */
 function ncss($path)
 {
-	return "<link type='text/css' href='/node_modules/$path' rel='stylesheet'>";
+	return "<link type='text/css' href='/node_modules/$path.css' rel='stylesheet'>";
 }
 
 function langShort()
@@ -337,5 +337,29 @@ function generate_password($length = 20)
 		$str .= $chars[mt_rand(0, $max)];
 
 	return $str;
+}
+
+function randomSequence($len) {
+	if ($len < 1 || $len > 9) return []; // No results
+	$row = [null, 1, 1, 1, 2, 2, 2, 3, 3, 3];
+	$col = [null, 1, 2, 3, 1, 2, 3, 1, 2, 3];
+	$neighbors = [[], [2, 4, 5],       [1, 4, 5, 6, 3],          [2, 5, 6],
+					  [1, 2, 5, 7, 8], [1, 2, 3, 4, 6, 7, 8, 9], [2, 3, 5, 8, 9],
+					  [4, 5, 8],       [4, 5, 6, 7, 9],          [5, 6, 8]];
+	// Shuffle the neighbor lists to implement the randomness:
+	foreach ($neighbors as &$nodes) shuffle($nodes);
+
+	$recurse = function ($seq) use (&$len, &$row, &$col, &$neighbors, &$recurse) {
+		if (count($seq) >= $len) return $seq; // found solution
+		$last = end($seq);
+		
+		foreach ($neighbors[$last] as $next) {
+			if (isset($seq[$next])) continue; // Skip if digit already used
+			$result = $recurse($seq + [$next => $next]);
+			if (is_array($result)) return $result;
+		}
+	};
+	$choice = rand(1, 9);
+	return array_keys($recurse([$choice => $choice]));
 }
 ?>

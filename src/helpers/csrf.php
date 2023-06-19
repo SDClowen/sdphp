@@ -19,5 +19,5 @@
 
 	function csrf()
 	{
-		return "<input type='hidden' value='".generate_csrf()."'/>";
+        return "<input type='hidden' name='csrf' value='".generate_csrf()."'/>";
 	}

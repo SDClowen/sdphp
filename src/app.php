@@ -17,6 +17,7 @@ final class App
         define('APP_DIR', ROOT_DIR . '/app');
         define('LANG_DIR', APP_DIR . '/lang');
 
+        global $appConfig;
         $appConfig = (object)require_once(APP_DIR."/config/app.php");
         
         define('CORE_DIR', __DIR__);

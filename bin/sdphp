@@ -1,0 +1,102 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+if (
+    ! (is_file($file = __DIR__ . '/../vendor/autoload.php') && include $file) &&
+    ! (is_file($file = __DIR__ . '/../../../autoload.php') && include $file)
+) {
+    fwrite(STDERR, "Install packages using Composer.\n");
+    exit(1);
+}
+
+const files = [
+    "controller" => "
+<?php 
+namespace App\Controllers;
+
+use Core\{Controller, Request};
+use Core\Attributes\\route;
+
+class [[controller_name]] extends Controller
+{
+    #[route(method: route::get)]
+    public function index()
+    {
+        # code....
+    }
+}
+",
+    "model" => "
+<?php 
+namespace App\Models;
+
+use Core\{Model, Database};
+
+class [[model_name]] extends Model
+{
+    public function hello()
+    {
+        # code....
+    }
+}
+"
+];
+
+if (count($argv) <= 1)
+    return;
+
+$command = explode(":", $argv[1]);
+
+switch ($command[0]) {
+    case "make":
+        sd_make($command[1], $argv[2]);
+        break;
+    default:
+        print("Unknown command $command[0]");
+        break;
+}
+
+function c($str, $type = 'i')
+{
+    switch ($type) {
+        case 'e': //error
+            return "\033[31m$str \033[0m\n";
+        case 's': //success
+            return "\033[32m$str \033[0m\n";
+        case 'w': //warning
+            return "\033[33m$str \033[0m\n";
+        case 'i': //info
+            return "\033[36m$str \033[0m\n";
+    }
+}
+
+function sd_make($command, $value)
+{
+    switch ($command) {
+        case "controller":
+            $path = __DIR__ . "/../app/controllers/" . strtolower($value) . ".php";
+            if (file_exists($path))
+                die(c($path . " already exists!", "e"));
+
+            file_put_contents($path, trim(str_replace("[[controller_name]]", $value, files["controller"])));
+            echo c("Successfully created the $value controller", "s");
+            break;
+
+        case "model":
+            $path = __DIR__ . "/../app/models/" . strtolower($value) . ".php";
+            if (file_exists($path))
+                die(c($path . " already exists!", "e"));
+
+            file_put_contents($path, trim(str_replace("[[model_name]]", $value, files["model"])));
+            echo c("Successfully created the $value model", "s");
+            break;
+
+        default:
+            echo c("[make] Unknown command $command", "e");
+            break;
+    }
+}
+
+
+?>
