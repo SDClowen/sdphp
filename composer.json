@@ -14,7 +14,8 @@
 	"bin": ["bin/sdphp"],
     "autoload": {
         "psr-4": {
-            "Core\\": "src/"
+            "Core\\": "src/",
+            "Core\\Attributes\\": "src/attributes/"
         }
     },
     "authors": [
