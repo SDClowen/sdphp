@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
-use Core\Database;
 declare(strict_types=1);
+use Core\Database;
 
 if (
     ! (is_file($file = __DIR__ . '/../vendor/autoload.php') && include $file) &&
