@@ -8,9 +8,6 @@
     "require": {
         "php": ">=8.0"
     },
-    "config": {
-        "bin-dir": "bin"
-    },
 	"bin": ["bin/sdphp"],
     "autoload": {
         "psr-4": {

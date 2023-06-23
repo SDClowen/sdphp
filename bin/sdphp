@@ -1,5 +1,6 @@
 #!/usr/bin/env php
 <?php
+use Core\Database;
 declare(strict_types=1);
 
 if (
@@ -9,6 +10,77 @@ if (
     fwrite(STDERR, "Install packages using Composer.\n");
     exit(1);
 }
+
+$databaseConfig = (object)require_once(__DIR__ . '/../app/config/database.php');
+
+const installQueries = [
+    "mysql" => "
+        CREATE DATABASE {{DB_NAME}};
+
+        CREATE TABLE IF NOT EXISTS `config` (
+            `name` varchar(50) NOT NULL,
+            `value` varchar(100) NOT NULL
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+          
+          CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
+            `email` varchar(255) NOT NULL,
+            `token` varchar(255) NOT NULL,
+            `created_at` timestamp NULL DEFAULT NULL,
+            PRIMARY KEY (`email`)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+          
+          CREATE TABLE IF NOT EXISTS `users` (
+            `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+            `name` varchar(64) NOT NULL,
+            `username` varchar(50) NOT NULL,
+            `email` varchar(64) NOT NULL,
+            `email_verified_at` timestamp NULL DEFAULT NULL,
+            `password` varchar(64) NOT NULL,
+            `prevPassword` varchar(64) NOT NULL DEFAULT '',
+            `remember_token` varchar(100) DEFAULT NULL,
+            `pin_token` varchar(64) DEFAULT NULL,
+            `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+            `updated_at` timestamp NOT NULL DEFAULT current_timestamp(),
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `users_email_unique` (`email`)
+          ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;    
+    ",
+    "sqlsrv" => "
+        CREATE DATABASE {{DB_NAME}};
+
+        IF db_id('{{DB_NAME}}') IS NULL 
+        CREATE DATABASE {{DB_NAME}}
+        go
+        CREATE TABLE {{DB_NAME}}..config (
+            name varchar(50) NOT NULL,
+            value varchar(100) NOT NULL
+        ) 
+
+        CREATE TABLE {{DB_NAME}}..password_reset_tokens (
+            email varchar(255) NOT NULL,
+            token varchar(255) NOT NULL,
+            created_at datetime2 NULL DEFAULT NULL,
+            PRIMARY KEY (email)
+        ) 
+
+        CREATE TABLE {{DB_NAME}}..users (
+            id bigint check (id > 0) NOT NULL IDENTITY,
+            name varchar(64) NOT NULL,
+            username varchar(50) NOT NULL,
+            email varchar(64) NOT NULL,
+            email_verified_at datetime2 NULL DEFAULT NULL,
+            password varchar(64) NOT NULL,
+            prevPassword varchar(64) NOT NULL DEFAULT '',
+            remember_token varchar(100) DEFAULT NULL,
+            pin_token varchar(64) DEFAULT NULL,
+            created_at datetime2 NOT NULL DEFAULT current_timestamp,
+            updated_at datetime2 NOT NULL DEFAULT current_timestamp,
+            PRIMARY KEY (id),
+            CONSTRAINT users_email_unique UNIQUE  (email)
+        )
+
+    "
+];
 
 const files = [
     "controller" => "
@@ -52,6 +124,8 @@ switch ($command[0]) {
     case "make":
         sd_make($command[1], $argv[2]);
         break;
+    case 
+        sd_install();
     default:
         print("Unknown command $command[0]");
         break;
@@ -71,11 +145,21 @@ function c($str, $type = 'i')
     }
 }
 
+function sd_install()
+{
+    global $databaseConfig;
+
+    $query = str_replace("{{DB_NAME}}", $databaseConfig->name, installQueries[$databaseConfig->driver]);
+    $result = Database::get()->query($query)->result();
+    if($result)
+        die(c("SDPhp successfully installed!\nYou can create first controller via this command 'composer sdphp make:controller Welcome'", "s"));
+}
+
 function sd_make($command, $value)
 {
     switch ($command) {
         case "controller":
-            $path = __DIR__ . "/../app/controllers/" . strtolower($value) . ".php";
+            $path = __DIR__ . "/../app/controllers/" . $value . ".php";
             if (file_exists($path))
                 die(c($path . " already exists!", "e"));
 
@@ -84,7 +168,7 @@ function sd_make($command, $value)
             break;
 
         case "model":
-            $path = __DIR__ . "/../app/models/" . strtolower($value) . ".php";
+            $path = __DIR__ . "/../app/models/" . $value . ".php";
             if (file_exists($path))
                 die(c($path . " already exists!", "e"));
 
