@@ -5,7 +5,7 @@
  */
 function ajs($path)
 {
-	return "<script src='/app/public/js/$path.js'></script>";
+	return "<script src='/public/js/$path.js'></script>";
 }
 
 /**
@@ -13,7 +13,7 @@ function ajs($path)
  */
 function acss($path)
 {
-	return "<link type='text/css' href='/app/public/css/$path.css' rel='stylesheet'>";
+	return "<link type='text/css' href='/public/css/$path.css' rel='stylesheet'>";
 }
 
 /**
