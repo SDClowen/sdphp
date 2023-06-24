@@ -164,6 +164,10 @@ function sd_make($command, $value)
     switch ($command) {
         case "controller":
             $path = APP_DIR . "/controllers/" . $value . ".php";
+
+            if(!file_exists(dirname($path)))
+                mkdir(dirname($path));
+
             if (file_exists($path))
                 die(c($path . " already exists!", "e"));
 
@@ -173,6 +177,10 @@ function sd_make($command, $value)
 
         case "model":
             $path = APP_DIR . "/models/" . $value . ".php";
+
+            if(!file_exists(dirname($path)))
+                mkdir(dirname($path));
+
             if (file_exists($path))
                 die(c($path . " already exists!", "e"));
 
@@ -185,6 +193,5 @@ function sd_make($command, $value)
             break;
     }
 }
-
 
 ?>
