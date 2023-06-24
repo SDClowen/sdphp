@@ -1,22 +1,27 @@
 #!/usr/bin/env php
 <?php
 declare(strict_types=1);
-use Core\Database;
 
-if (
-    ! (is_file($file = __DIR__ . '/../vendor/autoload.php') && include $file) &&
-    ! (is_file($file = __DIR__ . '/../../../autoload.php') && include $file)
-) {
-    fwrite(STDERR, "Install packages using Composer.\n");
-    exit(1);
+$autoloadPath = $GLOBALS["_composer_autoload_path"];
+$dir = dirname($autoloadPath)."/../";
+
+if(!(isset($autoloadPath) && include $autoloadPath)) {
+	fwrite(STDERR, "Install packages using Composer.\n");
+	exit(1);
 }
 
-$databaseConfig = (object)require_once(__DIR__ . '/../app/config/database.php');
+# dummy function cuz of used in Database class
+function stackMessages(){}
+define("APP_DIR", $dir."app");
+
+use Core\Database;
+
+define("db", Database::get());
+define("config", (object)include(APP_DIR . "/config/database.php"));
+
 
 const installQueries = [
     "mysql" => "
-        CREATE DATABASE {{DB_NAME}};
-
         CREATE TABLE IF NOT EXISTS `config` (
             `name` varchar(50) NOT NULL,
             `value` varchar(100) NOT NULL
@@ -46,22 +51,17 @@ const installQueries = [
           ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;    
     ",
     "sqlsrv" => "
-        CREATE DATABASE {{DB_NAME}};
-
-        IF db_id('{{DB_NAME}}') IS NULL 
-        CREATE DATABASE {{DB_NAME}}
-        go
         CREATE TABLE {{DB_NAME}}..config (
             name varchar(50) NOT NULL,
             value varchar(100) NOT NULL
-        ) 
+        );
 
         CREATE TABLE {{DB_NAME}}..password_reset_tokens (
             email varchar(255) NOT NULL,
             token varchar(255) NOT NULL,
             created_at datetime2 NULL DEFAULT NULL,
             PRIMARY KEY (email)
-        ) 
+        );
 
         CREATE TABLE {{DB_NAME}}..users (
             id bigint check (id > 0) NOT NULL IDENTITY,
@@ -77,8 +77,7 @@ const installQueries = [
             updated_at datetime2 NOT NULL DEFAULT current_timestamp,
             PRIMARY KEY (id),
             CONSTRAINT users_email_unique UNIQUE  (email)
-        )
-
+        );
     "
 ];
 
@@ -124,10 +123,11 @@ switch ($command[0]) {
     case "make":
         sd_make($command[1], $argv[2]);
         break;
-    case 
+    case "install":
         sd_install();
+        break;
     default:
-        print("Unknown command $command[0]");
+        print(c("Unknown command").c($command[0], "e"));
         break;
 }
 
@@ -147,12 +147,16 @@ function c($str, $type = 'i')
 
 function sd_install()
 {
-    global $databaseConfig;
-
-    $query = str_replace("{{DB_NAME}}", $databaseConfig->name, installQueries[$databaseConfig->driver]);
-    $result = Database::get()->query($query)->result();
-    if($result)
-        die(c("SDPhp successfully installed!\nYou can create first controller via this command 'composer sdphp make:controller Welcome'", "s"));
+    $query = str_replace("{{DB_NAME}}", config->name, installQueries[config->driver]);
+    
+    try{
+        db->pdo->exec($query);
+        die(c("sdphp successfully installed!\nYou can create first controller via this command 'vendor/bin/sdphp make:controller Welcome'", "s"));
+    }
+    catch(PDOException $error)
+    {
+        die(c($error, "e"));
+    }
 }
 
 function sd_make($command, $value)
