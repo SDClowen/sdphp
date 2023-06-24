@@ -185,7 +185,7 @@ final class App
 		$start_time = microtime(true);
         self::initialize();
 
-        $controllerPath = CDIR."/".self::$extraPath."/".strtolower(self::$controller).".php";
+        $controllerPath = CDIR."/".self::$extraPath."/".self::$controller.".php";
         if(!file_exists($controllerPath))
             debug("Controller Path not found\n $controllerPath");
             
