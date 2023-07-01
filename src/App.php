@@ -107,7 +107,7 @@ final class App
             if(self::$action == "404" || self::$action == "403")
             {
                 #header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found", true, 404);
-                die(file_get_contents(VDIR."/errors/{".self::$action."}.html"));
+                die(file_get_contents(VDIR."/errors/".self::$action.".html"));
             }
 
             array_shift($url);
