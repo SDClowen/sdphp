@@ -81,7 +81,7 @@ function lang($key)
 function getDataError()
 {
 	if (DEBUG) {
-		$error = Database::get()->getError();
+		$error = \Core\Database::get()->getError();
 		if ($error)
 			error($error);
 	}
