@@ -80,7 +80,7 @@ class Database
 		elseif ($config->driver == 'oracle')
 			$dsn = 'oci:dbname=' . $config->host . '/' . $config->name;
 		elseif ($config->driver == "sqlsrv")
-			$dsn = "sqlsrv:Server=" . $config->host . ";";
+			$dsn = "sqlsrv:Server=" . $config->host . ";Database=$config->name;";
 
 		if (empty($config->name))
 			return;
