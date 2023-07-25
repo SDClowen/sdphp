@@ -52,6 +52,7 @@ final class App
         } else
             error_reporting(0);
 
+        global $cookie;
         $cookie = Cookie::instance();
 
         if (!$cookie->has("lang")) {
