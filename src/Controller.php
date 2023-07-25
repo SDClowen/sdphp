@@ -39,12 +39,11 @@ class Controller
     public function render(string $view, array $args = [], bool $isEcho = true)
     {
         global $appConfig;
-        $useTemplateEngine = true;
 
         if (! file_exists($file = VDIR . "/" . strtolower($view) . ".php"))
             exit("Could not found the view file: $view");
 
-        if ($useTemplateEngine) {
+        if ($appConfig->latte) {
             $latte = new LatteEngine;
             $latte->setTempDirectory(APP_DIR . "/caches");
             $latte->setAutoRefresh(strtolower($appConfig->mode) == "development");
