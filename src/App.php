@@ -94,14 +94,14 @@ final class App
 		if(file_exists(CDIR."/".$url[0]))
 		{
 			self::$extraPath = $url[0];
-			self::$controller = "main";
+			self::$controller = "Main";
 			array_shift($url);
 			
 			if(count($url) == 0)
 				return;
 		}
 	
-		if (!file_exists(CDIR."/".self::$extraPath."/".$url[0].".php")) 
+		if (!file_exists(CDIR."/".self::$extraPath."/".ucfirst($url[0]).".php")) 
         {
             self::$action = $url[0];
 
@@ -115,7 +115,7 @@ final class App
         }
         else
         {
-            self::$controller = $url[0];
+            self::$controller = ucfirst($url[0]);
             array_shift($url);
 
             if (isset($url[0]))
@@ -128,9 +128,11 @@ final class App
         self::$params = $url;
     }
 
-    private static function findMethod(&$controller, string $name)
+    private static function findMethod(&$controller, string $name, $extraPath = "")
     {
-        $reflection = new \ReflectionClass("App\\Controllers\\".$controller);
+        $path = "App\\Controllers\\".(empty($extraPath) ? $controller : self::$extraPath."\\".self::$controller);
+        
+        $reflection = new \ReflectionClass($path);
         $controller = $reflection->newInstance();
         
         $method = route::get;
@@ -187,12 +189,13 @@ final class App
         self::initialize();
 
         $controllerPath = CDIR."/".self::$extraPath."/".self::$controller.".php";
+
         if(!file_exists($controllerPath))
             debug("Controller Path not found\n $controllerPath");
             
         #require_once $controllerPath;
 
-        $action = self::findMethod(self::$controller, self::$action);
+        $action = self::findMethod(self::$controller, self::$action, self::$extraPath);
         if(!$action)
             debug("The method not found: ".self::$action."\n");
 
