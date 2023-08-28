@@ -6,23 +6,32 @@ function multiple_isset($source, $item): bool
     return !((is_array($source) && !isset($source[$item])) || (is_object($source) && !isset($source->$item)));
 }
 
-function validate(&$source, array $items)
+function validate(&$source, array $items, bool $checkMissings = true)
 {
     $errors = [];
 
     foreach ($items as $item => $rules) 
     {
-        if (!multiple_isset($source, $item))
+        if ($checkMissings && !multiple_isset($source, $item))
             return lang("validation.input.missing", $rules['name']);
 
         $value = null;
         if (is_array($source))
+        {
+            if(!isset($source[$item]))
+                continue;
+
             $value = $source[$item];
+        }
         else
+        {
+            if(!isset($source->$item))
+                continue;
+            
             $value = $source->$item;
+        }
 
-
-        if (!isset($rules["required"]) && empty($value))
+        if ((!isset($rules["required"]) || $rules["required"] === "false") && empty($value))
             continue;
 
         foreach ($rules as $rule => $rule_value) {
