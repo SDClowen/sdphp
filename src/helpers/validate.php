@@ -1,9 +1,9 @@
 
 <?php
 
-function multiple_isset($source, $item): bool
+function multiple_isset($source, $item, $required) : bool
 {
-    return !((is_array($source) && !isset($source[$item])) || (is_object($source) && !isset($source->$item)));
+    return !($required && ((is_array($source) && !isset($source[$item])) || (is_object($source) && !isset($source->$item))));
 }
 
 function validate(&$source, array $items, bool $checkMissings = true)
@@ -12,7 +12,8 @@ function validate(&$source, array $items, bool $checkMissings = true)
 
     foreach ($items as $item => $rules) 
     {
-        if ($checkMissings && !multiple_isset($source, $item))
+        $required = isset($rules["required"]) ? $rules["required"] : false;
+        if ($checkMissings && !multiple_isset($source, $item, $required))
             return lang("validation.input.missing", $rules['name']);
 
         $value = null;
