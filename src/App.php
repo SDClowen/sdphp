@@ -66,6 +66,8 @@ final class App
         } else
             $lang = $cookie->get("lang");
 
+        $lang = "tr_TR"; # cuz of we cant find the default browser language!!!!
+
         setlocale(LC_ALL, $appConfig->locale);
         date_default_timezone_set($appConfig->timezone);
 
