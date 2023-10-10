@@ -58,6 +58,7 @@ final class App
         if (!$cookie->has("lang")) {
 
             $lang = str_replace("-", "_", Request::getLocale());
+            $lang = "tr_TR"; # cuz of we cant find the default browser language!!!!
 
             if (!file_exists(LANG_DIR . "/" . $lang . ".php"))
                 $lang = "tr_TR";
@@ -65,8 +66,6 @@ final class App
             $cookie->set("lang", $lang, 24);
         } else
             $lang = $cookie->get("lang");
-
-        $lang = "tr_TR"; # cuz of we cant find the default browser language!!!!
 
         setlocale(LC_ALL, $appConfig->locale);
         date_default_timezone_set($appConfig->timezone);
