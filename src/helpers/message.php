@@ -1,13 +1,14 @@
 <?php
 
-function message($message, $type = false, $redirect = false, $scrollTo = false, $refresh = false)
+function message($message, $type = false, $redirect = false, $scrollTo = false, $refresh = false, $visible = true)
 {
     return json_encode([
         "type" => $type, 
         "message" => $message, 
         "redirect" => $redirect, 
         "scrollTo" => $scrollTo,
-        "refresh" => $refresh
+        "refresh" => $refresh,
+        "visible" => $visible
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 }
 
@@ -30,24 +31,24 @@ function print_flush_message()
     }
 }
 
-function error($message = '', $redirect = false, $scrollTo = false, $refresh = false)
+function error($message = '', $redirect = false, $scrollTo = false, $refresh = false, $visible = true)
 {
-    die(message($message, "danger", $redirect, $scrollTo, $refresh));
+    die(message($message, "danger", $redirect, $scrollTo, $refresh, $visible));
 }
 
-function warning($message = '', $redirect = false, $scrollTo = false, $refresh = false)
+function warning($message = '', $redirect = false, $scrollTo = false, $refresh = false, $visible = true)
 {
-    die(message($message, "warning", $redirect, $scrollTo, $refresh));
+    die(message($message, "warning", $redirect, $scrollTo, $refresh, $visible));
 }
 
-function success($message = '', $redirect = false, $scrollTo = false, $refresh = false)
+function success($message = '', $redirect = false, $scrollTo = false, $refresh = false, $visible = true)
 {
-    die(message($message, "success", $redirect, $scrollTo, $refresh));
+    die(message($message, "success", $redirect, $scrollTo, $refresh, $visible));
 }
 
-function info($message = '', $redirect = false, $scrollTo = false, $refresh = false)
+function info($message = '', $redirect = false, $scrollTo = false, $refresh = false, $visible = true)
 {
-    die(message($message, "info", $redirect, $scrollTo, $refresh));
+    die(message($message, "info", $redirect, $scrollTo, $refresh, $visible));
 }
 
 function errorlang($key = '', $redirect = false, $scrollTo = false, $refresh = false)
