@@ -1,7 +1,7 @@
 
 <?php
 
-function multiple_isset($source, $item, $required) : bool
+function multiple_isset($source, $item, $required = true) : bool
 {
     return !($required && ((is_array($source) && !isset($source[$item])) || (is_object($source) && !isset($source->$item))));
 }
