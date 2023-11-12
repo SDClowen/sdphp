@@ -274,7 +274,10 @@ function validate_phone($value, $country)
     #TODO: need global
 
     #if($country == "tr")
-    return strlen(preg_replace('/\(5(0|1|2|3|4|5)\d\)[- ]\d{3}[- ]\d{2}[- ]\d{2}/s', '', $value, 1)) == 0;
+    $check1 = strlen(preg_replace('/\(5(0|1|2|3|4|5)\d\)[- ]\d{3}[- ]\d{2}[- ]\d{2}/s', '', $value, 1)) == 0;
+    $check2 = preg_match('/^(\+90|0)?\s*(\(\d{3}\)[\s-]*\d{3}[\s-]*\d{2}[\s-]*\d{2}|\(\d{3}\)[\s-]*\d{3}[\s-]*\d{4}|\(\d{3}\)[\s-]*\d{7}|\d{3}[\s-]*\d{3}[\s-]*\d{4}|\d{3}[\s-]*\d{3}[\s-]*\d{2}[\s-]*\d{2})$/', $value, $output_array);
+
+    return $check1 || count($output_array) > 0;
 }
 
 function validate_email($email)
