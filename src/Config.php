@@ -38,7 +38,10 @@ class Config
 
 	public function update()
 	{
-		return Database::get()->from("config")->update($this->_data);
+		$db = Database::get();
+		$data = (array)$this->_data;
+		foreach($data as $k => $v)
+			$db->from("config")->where("name", "=", $k)->update(["value" => $v]);
 	}
 }
 ?>
