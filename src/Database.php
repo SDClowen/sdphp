@@ -94,7 +94,7 @@ class Database
 			#$attr[PDO::SQLSRV_ATTR_ENCODING]	=	PDO::SQLSRV_ENCODING_UTF8;
 
 			if ($config->driver == "mysql")
-				$attr[PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES 'utf8'";
+				$attr[PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES '$config->charset'";
 
 			if($config->driver == "sqlsrv")
 			{
