@@ -38,9 +38,13 @@
             's' => lang('time.s')
         ];
 
+        global $cookie;
+
+        $lang = $cookie->get("lang");
+
         foreach ($string as $k => &$v) {
             if ($diff->$k)
-                $v = $diff->$k . ' ' . $v . ($diff->$k > 1 && @$_SESSION["lang"] != "tr_TR" ? "'s" : '');
+                $v = $diff->$k . ' ' . $v . ($diff->$k > 1 && @$lang != "tr_TR" ? "'s" : '');
             else
                 unset($string[$k]);
         }
