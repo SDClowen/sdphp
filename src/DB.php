@@ -1,16 +1,21 @@
 <?php 
 namespace Core;
 
-final class DB extends Database
+final class DB
 {
     public static function select($columns = null) : Database
     {
-        return parent::get()->select($columns);
+        return Database::get()->select($columns);
     }
 
     public static function from($table) : Database
     {
-        return parent::get()->from($table);
+        return Database::get()->from($table);
+    }
+
+    public static function query($query) : Database
+    {
+        return Database::get()->query($query);
     }
 }
     
