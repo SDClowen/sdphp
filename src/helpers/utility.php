@@ -164,6 +164,16 @@ function _e($str)
 	return str_replace($from, $to, $str);
 }
 
+function replacePrefixes($text, $prefix, $values) {
+	$result = $text;
+	foreach ($values as $value) {
+		$safePrefix = preg_quote($prefix, '/');
+		$result = preg_replace('/' . $safePrefix . '/', $value, $result, 1);
+	}
+	
+	return $result;
+}
+
 function get_ip()
 {
 	$ipaddress = '';
