@@ -49,9 +49,13 @@ class Controller
             $latte->setAutoRefresh(strtolower($appConfig->mode) == "development");
 
             if($isEcho)
+            {
+                ob_start();
                 $latte->render($file, $args);
+                echo minifier(ob_get_clean());
+            }
             else
-                return $latte->renderToString($file, $args);
+                return minifier($latte->renderToString($file, $args));
         } else {
             extract($args, EXTR_SKIP);
             ob_start();
@@ -61,7 +65,7 @@ class Controller
             else
                 exit("Could not found the view file: $view");
 
-            $result = ob_get_clean();
+            $result = minifier(ob_get_clean());
 
             if (!$isEcho)
                 return $result;
