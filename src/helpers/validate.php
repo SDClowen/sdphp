@@ -265,7 +265,7 @@ function alpha_space($data)
 
 function alpha_space2($data)
 {
-    return (!preg_match("/^([A-Za-zÇçĞğıİÖöŞşÜü0-9-_&=+% ])+$/i", $data)) ? false : true;
+    return (!preg_match("/^([A-Za-zÇçĞğıİÖöŞşÜü0-9-_&.?=+% ])+$/i", $data)) ? false : true;
 }
 
 function validate_phone($value, $country)
