@@ -86,7 +86,7 @@ final class App
 
         $url = Request::segments();
         
-        if (count($url) && !check_url_segments_security($url)) 
+        if (!count($url)) # && !check_url_segments_security($url) 
             debug("<br><font color=red>URL_FAILED</font><br>");
         
         if (!isset($url[0]))
