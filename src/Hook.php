@@ -1,6 +1,5 @@
 <?php 
-
-defined("DIRECT") or exit("No direct script access allowed");
+namespace Core;
 
 class Hook
 {
