@@ -282,6 +282,9 @@ class Database
 	 */
 	private function _escape($data)
 	{
+		if(empty($data))
+			return $data;
+		
 		return $this->pdo->quote(trim($data));
 	}
 
