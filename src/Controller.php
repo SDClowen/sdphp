@@ -76,9 +76,11 @@ class Controller
         $data["content"] = $this->render($xhrView, $data, false);
 
         if (Request::isAjax())
+        {
+            $data = array_filter($data, fn($p) => !is_object($p));
             die(data_json($data));
+        }
 
         $this->render($normalView, $data);
     }
 }
-?>
