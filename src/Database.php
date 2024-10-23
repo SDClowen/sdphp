@@ -731,7 +731,7 @@ class Database
 	 * @param string $fetch
 	 * @return object|array
 	 */
-	public function result($fetch = 'object', $params = [], $cache = true)
+	public function result($fetch = 'object', $params = [], $cache = false)
 	{
 		try {
 			$this->_prepare();
@@ -767,7 +767,7 @@ class Database
 	 * @param string $fetch
 	 * @return object|array
 	 */
-	public function results($fetch = 'object', $params = [], $cache = true)
+	public function results($fetch = 'object', $params = [], $cache = false)
 	{
 		try {
 			$this->_prepare();
