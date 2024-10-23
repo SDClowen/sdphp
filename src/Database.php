@@ -1,5 +1,7 @@
 <?php
+
 namespace Core;
+
 use \PDO;
 use \PDOException;
 
@@ -55,6 +57,12 @@ class Database
 	// Group flag for where and having statements
 	private $grouped = 0;
 
+	// Active or inactive cache system
+	private $cache = false;
+
+	// Query cache time
+	private $cacheTime = false;
+
 	// Singleton Class
 	private static $_instance;
 
@@ -70,6 +78,8 @@ class Database
 
 		$this->driver = $config->driver;
 		$this->prefix = $config->prefix;
+		$this->cache = $config->cache;
+		$this->cacheTime = $config->cacheTime;
 
 		$dsn = '';
 		// Setting connection string
@@ -93,22 +103,19 @@ class Database
 			#if($config->driver == "sqlsrv")
 			#$attr[PDO::SQLSRV_ATTR_ENCODING]	=	PDO::SQLSRV_ENCODING_UTF8;
 
-			if ($config->driver == "mysql")
-			{
+			if ($config->driver == "mysql") {
 				$attr[PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES '$config->charset'";
-				
+
 				$attr[PDO::MYSQL_ATTR_FOUND_ROWS] = true;
 			}
 
-			if($config->driver == "sqlsrv")
-			{
+			if ($config->driver == "sqlsrv") {
 				$attr[PDO::SQLSRV_ATTR_FORMAT_DECIMALS] = true;
 				$attr[PDO::SQLSRV_ATTR_DECIMAL_PLACES] = 2;
 			}
 
 			$this->pdo = new PDO($dsn, $config->user, $config->password, $attr);
-		}
-		catch (PDOException $e) {
+		} catch (PDOException $e) {
 			$errorMessage = "<b>DB ERROR</b><hr>Can not connect to Database<br><br>";
 
 			if (ini_get("display_errors"))
@@ -121,10 +128,10 @@ class Database
 		$time = $now - $start;
 		$time += $now - $_SERVER["REQUEST_TIME_FLOAT"];
 
-		stackMessages("Database connected succesfully in ".number_format($time * 1000, 2)." ms");
+		stackMessages("Database connected succesfully in " . number_format($time * 1000, 2) . " ms");
 	}
 
-	public static function get() : Database
+	public static function get(): Database
 	{
 		if (self::$_instance === null) {
 			self::$_instance = new self();
@@ -282,9 +289,9 @@ class Database
 	 */
 	private function _escape($data)
 	{
-		if(empty($data))
+		if (empty($data))
 			return $data;
-		
+
 		return $this->pdo->quote(trim($data));
 	}
 
@@ -301,16 +308,12 @@ class Database
 	{
 		if (is_null($this->where)) {
 			$this->where = 'WHERE ' . $column . $op . ($escape ? $this->_escape($value) : $value);
-		}
-		else {
+		} else {
 			if ($this->grouped > 0) {
-				$this->where .= ' ' . $column . $op . ($escape ? $this->_escape($value) : $value);
-				;
+				$this->where .= ' ' . $column . $op . ($escape ? $this->_escape($value) : $value);;
 				$this->grouped = 0;
-			}
-			else {
-				$this->where .= ' ' . $logic . ' ' . $column . $op . ($escape ? $this->_escape($value) : $value);
-				;
+			} else {
+				$this->where .= ' ' . $logic . ' ' . $column . $op . ($escape ? $this->_escape($value) : $value);;
 			}
 		}
 
@@ -415,12 +418,10 @@ class Database
 		if ($rows === 0) {
 			if ($this->driver == "sqlsrv") {
 				$this->limit = ' TOP ' . $start;
-			}
-			else {
+			} else {
 				$this->limit = ' LIMIT ' . $start;
 			}
-		}
-		else
+		} else
 			$this->limit = ' LIMIT ' . $start . ', ' . $rows;
 
 		return $this;
@@ -471,8 +472,7 @@ class Database
 			if ($this->grouped > 0) {
 				$this->having .= ' ' . $column . $op . $value;
 				$this->grouped = 0;
-			}
-			else {
+			} else {
 				$this->having .= ' ' . $logic . ' ' . $column . $op . $this->_escape($value);
 			}
 		}
@@ -642,8 +642,7 @@ class Database
 			if ($this->grouped > 0) {
 				$this->where .= ' ' . $column . " BETWEEN " . $this->_escape($first) . " $logic " . $this->_escape($second);
 				$this->grouped = 0;
-			}
-			else {
+			} else {
 				$this->where .= ' AND ' . $column . " BETWEEN " . $this->_escape($first) . " $logic " . $this->_escape($second);
 			}
 		}
@@ -697,16 +696,51 @@ class Database
 		return $this;
 	}
 
+	private function getCachedQueryResult($params, &$result): bool
+	{
+		$dir = APP_DIR . '/caches/database/';
+			if (!file_exists($dir))
+				mkdir($dir);
+
+		$cacheFile = $dir . md5($this->sql . serialize($params)) . '.cache';
+
+		// Eğer cache dosyası mevcutsa ve süresi dolmamışsa
+		if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $this->cacheTime) {
+			$result = unserialize(file_get_contents($cacheFile));
+			return true;
+		}
+		
+		return false;
+	}
+
+	private function cacheQuery($params, $result)
+	{
+		if ($this->cache) {
+			$dir = APP_DIR . '/caches/database/';
+			if (!file_exists($dir))
+				mkdir($dir);
+
+			$cacheFile = $dir . md5($this->sql . serialize($params)) . '.cache';
+			file_put_contents($cacheFile, serialize($result));
+		}
+	}
+
 	/**
 	 * Fetch a row
 	 *
 	 * @param string $fetch
 	 * @return object|array
 	 */
-	public function result($fetch = 'object', $params = [])
+	public function result($fetch = 'object', $params = [], $cache = true)
 	{
 		try {
 			$this->_prepare();
+
+			if ($this->cache && $cache && $this->getCachedQueryResult($params, $result)) {
+				$this->_reset();
+				return $result;
+			}
+
 			$query = $this->pdo->prepare($this->sql);
 			$run = $query->execute($params);
 
@@ -717,9 +751,11 @@ class Database
 			else
 				$row = $query->fetch(PDO::FETCH_ASSOC);
 
+			if ($cache)
+				$this->cacheQuery($params, $row);
+
 			return $row;
-		}
-		catch (PDOException $e) {
+		} catch (PDOException $e) {
 			$this->error = $e->getMessage();
 			echo $this->error;
 		}
@@ -731,26 +767,34 @@ class Database
 	 * @param string $fetch
 	 * @return object|array
 	 */
-	public function results($fetch = 'object', $params = [])
+	public function results($fetch = 'object', $params = [], $cache = true)
 	{
 		try {
 			$this->_prepare();
+
+			if ($this->cache && $cache && $this->getCachedQueryResult($params, $result)) {
+				$this->_reset();
+				return $result;
+			}
+
 			$query = $this->pdo->prepare($this->sql);
 			$run = $query->execute($params);
 
 			$this->_reset();
 			if ($run)
 				if ($fetch == 'array')
-					$result = $query->fetchAll(PDO::FETCH_ASSOC);
+					$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 				else
-					$result = $query->fetchAll(PDO::FETCH_OBJ);
+					$rows = $query->fetchAll(PDO::FETCH_OBJ);
 			else
 				return false;
 
-			$this->numRows = $query->rowCount();
-			return $result;
-		}
-		catch (PDOException $e) {
+			if ($cache)
+				$this->cacheQuery($params, $rows);
+
+			return $rows;
+
+		} catch (PDOException $e) {
 			$this->error = $e->getMessage();
 		}
 	}
@@ -796,7 +840,7 @@ class Database
 	 * @param string $query
 	 * @return mixed
 	 */
-	public function query($query) : Database
+	public function query($query): Database
 	{
 		$this->custom = true;
 		$this->sql = $query;
@@ -844,8 +888,7 @@ class Database
 			}
 
 			$this->insertId = $this->pdo->lastInsertId();
-		}
-		catch (PDOException $e) {
+		} catch (PDOException $e) {
 			$this->error = $e->getMessage();
 		}
 
@@ -890,9 +933,7 @@ class Database
 				return false;
 
 			return $query->rowCount();
-
-		}
-		catch (PDOException $e) {
+		} catch (PDOException $e) {
 			$this->error = $e->getMessage();
 		}
 	}
@@ -921,9 +962,7 @@ class Database
 			}
 
 			return $query->rowCount();
-
-		}
-		catch (PDOException $e) {
+		} catch (PDOException $e) {
 			$this->error = $e->getMessage();
 		}
 	}
@@ -955,13 +994,11 @@ class Database
 					$row = $query->fetch(PDO::FETCH_OBJ);
 				else
 					$row = $query->fetch(PDO::FETCH_ASSOC);
-			}
-			else
+			} else
 				return $query->fetchColumn(0);
 
 			return $row;
-		}
-		catch (PDOException $e) {
+		} catch (PDOException $e) {
 			$this->error = $e->getMessage();
 			echo $this->error;
 		}
@@ -984,8 +1021,7 @@ class Database
 				return $query->fetch(PDO::FETCH_ASSOC);
 			else
 				return $query->fetch(PDO::FETCH_OBJ);
-		}
-		catch (PDOException $e) {
+		} catch (PDOException $e) {
 			$this->error = $e->getMessage();
 		}
 	}
@@ -1007,8 +1043,7 @@ class Database
 				return $query->fetch(PDO::FETCH_ASSOC);
 			else
 				return $query->fetch(PDO::FETCH_OBJ);
-		}
-		catch (PDOException $e) {
+		} catch (PDOException $e) {
 			$this->error = $e->getMessage();
 		}
 	}
@@ -1030,8 +1065,7 @@ class Database
 				return $query->fetch(PDO::FETCH_ASSOC);
 			else
 				return $query->fetch(PDO::FETCH_OBJ);
-		}
-		catch (PDOException $e) {
+		} catch (PDOException $e) {
 			$this->error = $e->getMessage();
 		}
 	}
@@ -1053,8 +1087,7 @@ class Database
 				return $query->fetch(PDO::FETCH_ASSOC);
 			else
 				return $query->fetch(PDO::FETCH_OBJ);
-		}
-		catch (PDOException $e) {
+		} catch (PDOException $e) {
 			$this->error = $e->getMessage();
 		}
 	}
@@ -1076,8 +1109,7 @@ class Database
 				return $query->fetch(PDO::FETCH_ASSOC);
 			else
 				return $query->fetch(PDO::FETCH_OBJ);
-		}
-		catch (PDOException $e) {
+		} catch (PDOException $e) {
 			$this->error = $e->getMessage();
 		}
 	}
@@ -1117,7 +1149,7 @@ class Database
 	 *
 	 * @return void
 	 */
-	public function getError() : mixed
+	public function getError(): mixed
 	{
 		if (null !== $this->error) {
 			if (DEBUG)
@@ -1156,4 +1188,3 @@ class Database
 		$this->pdo = null;
 	}
 }
-?>
