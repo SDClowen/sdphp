@@ -1,4 +1,3 @@
-
 <?php
 
 function multiple_isset($source, $item, $required = true) : bool
