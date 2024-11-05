@@ -3,6 +3,11 @@ namespace Core;
 
 final class DB
 {
+    public static function prefix($prefix = null) : Database
+    {
+        return Database::get()->prefix($prefix);
+    }
+
     public static function select($columns = null) : Database
     {
         return Database::get()->select($columns);
