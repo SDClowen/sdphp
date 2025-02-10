@@ -886,8 +886,11 @@ class Database
 				$query->nextRowSet();
 				$this->insertId = $query->fetchColumn(0);
 			}
+			else
+				$this->insertId = $this->pdo->lastInsertId();
 
-			$this->insertId = $this->pdo->lastInsertId();
+			return $this->insertId;
+			
 		} catch (PDOException $e) {
 			$this->error = $e->getMessage();
 		}
