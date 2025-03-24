@@ -416,7 +416,9 @@ class Request
 					// trim for safety measures
 					$ip = trim($ip);
 					// attempt to validate IP
-					if (validate_ip($ip)) {
+
+					$validateIp = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false;
+					if (!$validateIp) {
 						return strlen($ip) > 20 ? substr($ip, 0, 20) : $ip;
 					}
 				}
