@@ -1,5 +1,5 @@
 <?php
-namespace App\Helpers;
+namespace Core;
 
 use Core\Request;
 
