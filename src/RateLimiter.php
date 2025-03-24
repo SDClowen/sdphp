@@ -3,7 +3,7 @@ namespace Core;
 
 use Core\Request;
 
-class RateLimit {
+class RateLimiter {
     private $maxRequests;
     private $period;
     private $storageFile;
