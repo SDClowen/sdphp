@@ -41,7 +41,7 @@ final class App
         session_start();
 
 	// Initialize rate limiter (60 requests per 60 seconds)
-	$rateLimiter = new App\Helpers\RateLimit(maxRequests: 60, period: 60);
+	$rateLimiter = new RateLimit(maxRequests: 60, period: 60);
 	if (!$rateLimiter->check()) {
 	    header('HTTP/1.1 429 Too Many Requests');
 	    header('Retry-After: 60');
