@@ -495,7 +495,7 @@ class Request
 	
 	    // Remove all remaining HTML/XML tags and attributes
 	    $data = strip_tags($data);
-	
+	    return $data;
 	    // Double encode to prevent bypass attempts
 	    return htmlspecialchars($data, ENT_QUOTES | ENT_HTML5, 'UTF-8', true);
 	}
