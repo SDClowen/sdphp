@@ -446,7 +446,7 @@ class Request
 	public static function filter($data = null, $filter = true)
 	{
 	    if ($data === null || !is_string($data)) {
-	        return '';
+	        return $data;
 	    }
 	
 	    $data = trim($data);
