@@ -210,7 +210,7 @@ class Request
 	 */
 	public static function getRequestUri()
 	{
-		return $_SERVER['REQUEST_URI'];
+		return $_SERVER['UNENCODED_URL'] ?? $_SERVER['REQUEST_URI'];;
 	}
 
 	/**
